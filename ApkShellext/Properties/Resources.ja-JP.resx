@@ -1,0 +1,285 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="btnOK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="btnGitHub" xml:space="preserve">
+    <value>公式GitHubページ</value>
+  </data>
+  
+  <data name="btnUpdateToolTip" xml:space="preserve">
+    <value>更新のためプロジェクトサイトへ移動</value>
+  </data>
+  <data name="lblRenamePattern" xml:space="preserve">
+    <value>名前変更パターン</value>
+  </data>
+  <data name="menuGotoAmazonAppStore" xml:space="preserve">
+    <value>Amazon Appstore で {0} をチェック </value>
+  </data>
+  <data name="menuGotoAppleAppStore" xml:space="preserve">
+    <value>Apple App Store で {0} をチェック </value>
+  </data>
+  <data name="menuGotoGooglePlay" xml:space="preserve">
+    <value>Google Play で {0} をチェック</value>
+  </data>
+  <data name="menuGotoMicrosoftStore" xml:space="preserve">
+    <value>Microsoft Storeで {0} をチェック</value>
+  </data>
+  
+  
+  <data name="menuRenameAs" xml:space="preserve">
+    <value>名前を {0} に変更</value>
+  </data>
+  <data name="strAlwaysShowGooglePlay" xml:space="preserve">
+    <value>複数のファイルを選択したときアプリストアメニューを表示する</value>
+  </data>
+  <data name="strAlwaysShowGooglePlayToolTip" xml:space="preserve">
+    <value>チェックした場合、複数のapkファイルを選択した時でもアプリストアメニューが表示されます。
+注意: ブラウザのウインドウが大量に開かれてパフォーマンスに影響する可能性があります。
+デフォルトでは、一つのファイルを選択したときだけ表示します。</value>
+  </data>
+  <data name="strCheckingNewVersion" xml:space="preserve">
+    <value>新しいバージョンを確認しています ...</value>
+  </data>
+  <data name="strCheckProjectSite" xml:space="preserve">
+    <value>プロジェクトサイトで更新を確認します。</value>
+  </data>
+  
+  <data name="strGotLatest" xml:space="preserve">
+    <value>素晴らしい! 最新バージョンを使用中です。</value>
+  </data>
+  <data name="strGotoProjectSite" xml:space="preserve">
+    <value>ApkShellext プロジェクトサイトへ</value>
+  </data>
+  <data name="strLanguages" xml:space="preserve">
+    <value>使用する言語:</value>
+  </data>
+  <data name="strNeedApkShellextService" xml:space="preserve">
+    <value>この機能は ApkShellextService を必要としています。サービスが開始されているか確認してください。</value>
+  </data>
+  <data name="strNewVersionAvailible" xml:space="preserve">
+    <value>新しいバージョン {0} があります</value>
+  </data>
+  
+  <data name="strReadFileFailed" xml:space="preserve">
+    <value>ファイルを読み取れません</value>
+  </data>
+  <data name="strReferToWiki" xml:space="preserve">
+    <value>変数の使用方法は、プロジェクトのWikiを参照してください。</value>
+  </data>
+  <data name="strRenameToolTip" xml:space="preserve">
+    <value>Android アプリでよく起きる、同じバージョンで異なるリビジョン番号、といった状況を回避します。
+チェックすると、アプリファイルを %AppName%_%Version%_%Revision% 、または %AppName%_%Version% に変更します。</value>
+  </data>
+  <data name="strScanToDownload" xml:space="preserve">
+    <value>QR コードをスキャンするとダウンロード出来ます</value>
+  </data>
+  <data name="strShowAppxIcon" xml:space="preserve">
+    <value>Windows Phone アプリ (appx, appxbundle) のアイコンを表示する</value>
+  </data>
+  <data name="strShowIpaIcon" xml:space="preserve">
+    <value>iOS アプリ (ipa) のアイコンを表示する</value>
+  </data>
+  <data name="strShowOverlayIcon" xml:space="preserve">
+    <value>オーバーレイアイコンを表示する</value>
+  </data>
+  <data name="strShowOverlayIconToolTip" xml:space="preserve">
+    <value>ファイルタイプのオーバーレイアイコンを表示します。</value>
+  </data>
+  <data name="strShowContextMenuIcon" xml:space="preserve">
+    <value>コンテキストメニューアイコンの表示</value>
+  </data>
+  
+  
+  <data name="btnYes" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="strRenameConfirm" xml:space="preserve">
+    <value>このファイルの名前を {0} に変更しますか?</value>
+  </data>
+  <data name="strRenamePattern" xml:space="preserve">
+    <value>名前の変更パターン: (拡張子除く)</value>
+  </data>
+  <data name="twContextMenu" xml:space="preserve">
+    <value>コンテキストメニュー</value>
+  </data>
+  <data name="twGeneral" xml:space="preserve">
+    <value>基本設定</value>
+  </data>
+  
+  <data name="twRename" xml:space="preserve">
+    <value>名前の変更</value>
+  </data>
+  
+  <data name="menuGotoApkMirror" xml:space="preserve">
+    <value>CheckApkMirror.comで {0} をチェックする</value>
+  </data>
+  <data name="btnResetPattern" xml:space="preserve">
+    <value>最後に保存したパターンを使う</value>
+  </data>
+  <data name="strShowAmazonStore" xml:space="preserve">
+    <value>Amazonアプリストアリンクをコンテキストメニューに表示する</value>
+  </data>
+  <data name="strShowApkMirror" xml:space="preserve">
+    <value>ApkMirrorリンクをコンテキストメニューに表示する</value>
+  </data>
+  <data name="strShowAppleStore" xml:space="preserve">
+    <value>Apple storeリンク (ipa用) をコンテキストメニューに表示する</value>
+  </data>
+  <data name="strShowGooglePlay" xml:space="preserve">
+    <value>Google Playストアリンクをコンテキストメニューに表示する</value>
+  </data>
+  <data name="strShowMSStore" xml:space="preserve">
+    <value>Microsoft Storeリンク (appx/appxbundle) をコンテキストメニューに表示する</value>
+  </data>
+  
+  <data name="btnBrowse" xml:space="preserve">
+    <value>参照</value>
+  </data>
+  
+  <data name="strAdbPath" xml:space="preserve">
+    <value>adb.exeのパスを指定してください。</value>
+  </data>
+  
+  <data name="strShowNewVerInfo" xml:space="preserve">
+    <value>アプリの更新をコンテキストメニューで知らせる</value>
+  </data>
+  
+  <data name="strStretchThumbnail" xml:space="preserve">
+    <value>Windowsが大きいサイズのサムネイルを要求したとき、拡大する</value>
+  </data>
+  <data name="strHelpTranslate" xml:space="preserve">
+    <value>このプロジェクトの翻訳を助けてください。</value>
+  </data>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</root>
