@@ -1,0 +1,339 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="btnOK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="btnGitHub" xml:space="preserve">
+    <value>Official Page on GitHub</value>
+  </data>
+  <data name="btnUpdate" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="btnUpdateToolTip" xml:space="preserve">
+    <value>Check the project site for update</value>
+  </data>
+  <data name="lblRenamePattern" xml:space="preserve">
+    <value>RenamePattern</value>
+  </data>
+  <data name="menuGotoAmazonAppStore" xml:space="preserve">
+    <value>Search {0} in Amazon Appstore</value>
+  </data>
+  <data name="menuGotoAppleAppStore" xml:space="preserve">
+    <value>Search {0} in Apple Appstore</value>
+  </data>
+  <data name="menuGotoGooglePlay" xml:space="preserve">
+    <value>Search {0} in GooglePlay</value>
+  </data>
+  <data name="menuGotoMicrosoftStore" xml:space="preserve">
+    <value>Search {0} in Microsoft Store</value>
+  </data>
+  <data name="menuMain" xml:space="preserve">
+    <value>APK Shell Extension</value>
+  </data>
+  <data name="menuPreferences" xml:space="preserve">
+    <value>Preferences</value>
+  </data>
+  <data name="menuRenameAs" xml:space="preserve">
+    <value>Rename to {0}</value>
+  </data>
+  <data name="strAlwaysShowGooglePlay" xml:space="preserve">
+    <value>Show app store menus when selected multiple files</value>
+  </data>
+  <data name="strAlwaysShowGooglePlayToolTip" xml:space="preserve">
+    <value>If checked, app store menus will show up even multiple apk files selected. 
+Please note, you may open a lot of browser window and impact the performance significantly.
+By default, only show the menu when one file selected</value>
+  </data>
+  <data name="strCheckingNewVersion" xml:space="preserve">
+    <value>Checking new version ...</value>
+  </data>
+  <data name="strCheckProjectSite" xml:space="preserve">
+    <value>Check project site for update.</value>
+  </data>
+  <data name="strCurrVersion" xml:space="preserve">
+    <value>Current Version: {0}</value>
+  </data>
+  <data name="strGotLatest" xml:space="preserve">
+    <value>Great! You have the latest version.</value>
+  </data>
+  <data name="strGotoProjectSite" xml:space="preserve">
+    <value>Go to ApkShellext Project site</value>
+  </data>
+  <data name="strLanguages" xml:space="preserve">
+    <value>Use Language:</value>
+  </data>
+  <data name="strNeedApkShellextService" xml:space="preserve">
+    <value>This feature requires ApkShellextService, please make sure the service started.</value>
+  </data>
+  <data name="strNewVersionAvailible" xml:space="preserve">
+    <value>New version {0} is availible</value>
+  </data>
+  <data name="strPreferencesCaption" xml:space="preserve">
+    <value>ApkShellext Preferences</value>
+  </data>
+  <data name="strReadFileFailed" xml:space="preserve">
+    <value>Fail to read file</value>
+  </data>
+  <data name="strReferToWiki" xml:space="preserve">
+    <value>Variable usage please refer to Project Wiki</value>
+  </data>
+  <data name="strRenameToolTip" xml:space="preserve">
+    <value>For avoiding situation of same Version but different revision number, this most like happens in android app files. 
+By checking this, rename app file as %AppName%_%Version%_%Revision%, otherwise, use %AppName%_%Version%.</value>
+  </data>
+  <data name="strScanToDownload" xml:space="preserve">
+    <value>Scan QR code to download</value>
+  </data>
+  <data name="strShowAppxIcon" xml:space="preserve">
+    <value>Display WindowsPhone app (appx, appxbundle) icon.</value>
+  </data>
+  <data name="strShowIpaIcon" xml:space="preserve">
+    <value>Display iOS app (ipa) icon.</value>
+  </data>
+  <data name="strShowOverlayIcon" xml:space="preserve">
+    <value>Display Overlay Icon for different OS</value>
+  </data>
+  <data name="strShowOverlayIconToolTip" xml:space="preserve">
+    <value>Display overlay icon for different OS</value>
+  </data>
+  <data name="strShowContextMenuIcon" xml:space="preserve">
+    <value>Display icon for context menu</value>
+  </data>
+  <data name="btnCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="btnNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="btnYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="strRenameConfirm" xml:space="preserve">
+    <value>Confirm to rename this file as {0}?</value>
+  </data>
+  <data name="strRenamePattern" xml:space="preserve">
+    <value>Rename Pattern: (without extension)</value>
+  </data>
+  <data name="twContextMenu" xml:space="preserve">
+    <value>Context Menu</value>
+  </data>
+  <data name="twGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="twIcon" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="twRename" xml:space="preserve">
+    <value>Renaming</value>
+  </data>
+  <data name="twInfotip" xml:space="preserve">
+    <value>InfoTip</value>
+  </data>
+  <data name="menuGotoApkMirror" xml:space="preserve">
+    <value>Search {0} in ApkMirror.com</value>
+  </data>
+  <data name="btnResetPattern" xml:space="preserve">
+    <value>Use Last Saved Pattern</value>
+  </data>
+  <data name="strShowAmazonStore" xml:space="preserve">
+    <value>Show menu to Amazon App Store</value>
+  </data>
+  <data name="strShowApkMirror" xml:space="preserve">
+    <value>Show menu to ApkMirror</value>
+  </data>
+  <data name="strShowAppleStore" xml:space="preserve">
+    <value>Show menu to Apple App Store (for ipa)</value>
+  </data>
+  <data name="strShowGooglePlay" xml:space="preserve">
+    <value>Show menu to Google play</value>
+  </data>
+  <data name="strShowMSStore" xml:space="preserve">
+    <value>Show menu to Microsoft Store (for appx/appxbundle)</value>
+  </data>
+  <data name="strInfoTipPattern" xml:space="preserve">
+    <value>Info Tip Pattern:</value>
+  </data>
+  <data name="btnBrowse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="btnSearchAdb" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="strAdbPath" xml:space="preserve">
+    <value>Please specify path of adb.exe</value>
+  </data>
+  <data name="strReplaceSpaceWith_" xml:space="preserve">
+    <value>Replace Space with :</value>
+  </data>
+  <data name="strShowNewVerInfo" xml:space="preserve">
+    <value>Notice me when new version is availible</value>
+  </data>
+  <data name="twThumbnail" xml:space="preserve">
+    <value>Thumbnail</value>
+  </data>
+  <data name="strStretchThumbnail" xml:space="preserve">
+    <value>Stretch thumbnail if Windows requesting larger size</value>
+  </data>
+  <data name="strHelpTranslate" xml:space="preserve">
+    <value>Help to translate this project.</value>
+  </data>
+  <data name="strClearCache" xml:space="preserve">
+    <value>Clear Icon and Thumbnail cache</value>
+  </data>
+  <data name="dialogClearCache" xml:space="preserve">
+    <value>All open File Explorer will be closed, Continue?</value>
+  </data>
+  <data name="strEnableThumbnail" xml:space="preserve">
+    <value>Display Thumbnail instead of Icon.</value>
+  </data>
+  <data name="dialogNeedClearCache" xml:space="preserve">
+    <value>In order to display icon and thumbnail correctly, the cache need to be cleared, clear it now?</value>
+  </data>
+  <data name="strSearchStore" xml:space="preserve">
+    <value>Search in Stores</value>
+  </data>
+  <data name="menuDump" xml:space="preserve">
+    <value>Dump</value>
+  </data>
+  <data name="strSupportAdaptiveIcon" xml:space="preserve">
+    <value>Support Adaptive Icon (beta)</value>
+  </data>
+  <data name="strEnableLog" xml:space="preserve">
+    <value>Enable debug logging</value>
+  </data>
+  <data name="menuDumpManifest" xml:space="preserve">
+    <value>Dump androidmanifest.xml</value>
+  </data>
+  <data name="menuDumpOthers" xml:space="preserve">
+    <value>Dump XML ...</value>
+  </data>
+  <data name="strDumpXML" xml:space="preserve">
+    <value>Dump XML</value>
+  </data>
+  <data name="strDumpXMLPrompt" xml:space="preserve">
+    <value>Path to XML, eg: res\drawable\icon.xml</value>
+  </data>
+  <data name="strPatreonBtn" xml:space="preserve">
+    <value>Support me!</value>
+  </data>
+  <data name="strPatreonTip" xml:space="preserve">
+    <value>Support me on Patreon</value>
+  </data>
+</root>
