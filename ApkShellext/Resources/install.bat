@@ -1,4 +1,6 @@
 @ECHO OFF
+:: Automatically unblock all downloaded project files to prevent SmartScreen/Security block warnings
+powershell -Command "Get-ChildItem -Path '%~dp0' -Recurse | Unblock-File" 2>nul
 CLS
 ECHO ===================================================================
 ECHO   AliSakkaF ApkShellext - Shell Extension Installer
