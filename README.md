@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ApkShellext/Resources/Apkshellext_icons/apkshell_b64.png" alt="ApkShellext Logo" width="80" height="80" />
+  <img src="https://raw.githubusercontent.com/alisakkaf/ApkShellext/main/ApkShellext_icon.png" alt="ApkShellext Logo" alt="ApkShellext Logo" width="150" height="120" />
 </p>
 
 <h1 align="center">ApkShellext</h1>
@@ -13,12 +13,16 @@
   <a href="#key-technical-improvements"><img src="https://img.shields.io/badge/.NET%20Framework-4.8-green.svg?style=for-the-badge" alt="Framework Target" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License Type" /></a>
   <img src="https://img.shields.io/badge/Build-Success-brightgreen.svg?style=for-the-badge" alt="Build Status" />
-  <img src="https://img.shields.io/badge/Release-v1.0.0-orange.svg?style=for-the-badge" alt="Version Number" />
+  <a href="https://github.com/alisakkaf/ApkShellext/releases"><img src="https://img.shields.io/github/v/release/alisakkaf/ApkShellext?style=for-the-badge&color=orange" alt="Latest Release" /></a>
 </p>
 
 ---
 
 ### 🌟 Overview
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/alisakkaf/ApkShellext/main/Featured_Image.jpg" alt="Featured Image" width="600" />
+</p>
 
 **ApkShellext** elevates your Windows desktop experience by integrating native support for mobile app packages. It eliminates default blank icons by dynamically decoding binary manifests and resource tables in real-time, providing high-resolution, pixel-perfect icon previews and structured hover tooltips.
 
@@ -42,6 +46,7 @@ This repository contains a modernized, refactored, and thoroughly upgraded relea
 8. [Credits & Acknowledgment](#credits--acknowledgment)
 9. [License](#license)
 10. [Developer Info](#developer-info)
+11. [Support-Developer](#support-info)
 
 ---
 
@@ -196,6 +201,33 @@ This project is an upgraded fork based on the original [ApkShellext2 by kkguo](h
 * [SVG](https://github.com/vvvv/SVG) - C# SVG rendering engine.
 * [WebP-Wrapper](https://github.com/JosePineiro/WebP-wrapper) - WebP decoding library.
 * [QRCoder](https://github.com/codebude/QRCoder) - QR code encoder.
+
+---
+
+
+### 💡 Support the Developer
+## Support-info
+
+<div align="center">
+  <i>If you find my tools and projects useful, consider supporting my work. Your support helps keep these projects completely free!</i>
+</div>
+
+<br>
+
+<div align="center">
+
+| Crypto Asset | Network | Wallet Address (Copy) | Quick Scan |
+| :--- | :--- | :--- | :---: |
+| ![USDT](https://img.shields.io/badge/USDT-Tether-26A17B?style=for-the-badge&logo=tether&logoColor=white) | **TRC20** | `TYLBeDA5aGNcc3WkVqf3xWPHXmsZzs2p28` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=TYLBeDA5aGNcc3WkVqf3xWPHXmsZzs2p28" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+| ![USDT](https://img.shields.io/badge/USDT-Tether-26A17B?style=for-the-badge&logo=tether&logoColor=white) | **BEP20** | `0x67cf27f33c80479ea96372810f9e2ee4c3b095c5` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=0x67cf27f33c80479ea96372810f9e2ee4c3b095c5" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+| ![BTC](https://img.shields.io/badge/BTC-Bitcoin-F7931A?style=for-the-badge&logo=bitcoin&logoColor=white) | **Bitcoin** | `bc1q97dr37h37npzarmmrv0tjz2nm50htqc7pfpzj6` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=bitcoin:bc1q97dr37h37npzarmmrv0tjz2nm50htqc7pfpzj6" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+| ![ETH](https://img.shields.io/badge/ETH-Ethereum-3C3C3D?style=for-the-badge&logo=ethereum&logoColor=white) | **ERC20** | `0x67cf27f33c80479ea96372810F9e2EE4C3b095C5` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=ethereum:0x67cf27f33c80479ea96372810F9e2EE4C3b095C5" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+| ![SOL](https://img.shields.io/badge/SOL-Solana-9945FF?style=for-the-badge&logo=solana&logoColor=white) | **Solana** | `Cbesgr4tvo4T1inNMFe46GSym2qMYjkmofbXFc77rDNK` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=solana:Cbesgr4tvo4T1inNMFe46GSym2qMYjkmofbXFc77rDNK" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+| ![USDC](https://img.shields.io/badge/USDC-USD_Coin-2775CA?style=for-the-badge&logo=usd-coin&logoColor=white) | **ERC20** | `0x67cf27f33c80479ea96372810f9e2ee4c3b095c5` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=0x67cf27f33c80479ea96372810f9e2ee4c3b095c5" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+| ![USDC](https://img.shields.io/badge/USDC-USD_Coin-2775CA?style=for-the-badge&logo=usd-coin&logoColor=white) | **SPL** | `Cbesgr4tvo4T1inNMFe46GSym2qMYjkmofbXFc77rDNK` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=solana:Cbesgr4tvo4T1inNMFe46GSym2qMYjkmofbXFc77rDNK" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+| ![USDC](https://img.shields.io/badge/USDC-USD_Coin-2775CA?style=for-the-badge&logo=usd-coin&logoColor=white) | **BEP20** | `0x67cf27f33c80479ea96372810F9e2EE4C3b095C5` | <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=0x67cf27f33c80479ea96372810F9e2EE4C3b095C5" target="_blank"><img src="https://img.shields.io/badge/Show_QR-Click_Here-black?style=flat-square&logo=qr-code" alt="QR"></a> |
+
+</div>
 
 ---
 
