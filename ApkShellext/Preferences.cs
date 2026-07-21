@@ -197,7 +197,9 @@ namespace ApkShellext {
         }
 
         private void btnUpdate_Click(object sender, EventArgs e) {
-            System.Diagnostics.Process.Start(string.Format(NonLocalizeResources.urlGithubHomeWithVersion, Assembly.GetExecutingAssembly().GetName().Version.ToString()));
+            Version v = Assembly.GetExecutingAssembly().GetName().Version;
+            string versionStr = (v.Revision == 0 && v.Build >= 0) ? v.ToString(3) : v.ToString();
+            System.Diagnostics.Process.Start(string.Format(NonLocalizeResources.urlGithubHomeWithVersion, versionStr));
         }
 
         private void ckShowMenuIcon_CheckedChanged(object sender, EventArgs e) {
@@ -297,7 +299,9 @@ namespace ApkShellext {
         }
 
         private void btnUpdate_Click_1(object sender, EventArgs e) {
-            System.Diagnostics.Process.Start(string.Format(Properties.NonLocalizeResources.urlGithubHomeWithVersion,Assembly.GetExecutingAssembly().GetName().Version.ToString()));
+            Version v = Assembly.GetExecutingAssembly().GetName().Version;
+            string versionStr = (v.Revision == 0 && v.Build >= 0) ? v.ToString(3) : v.ToString();
+            System.Diagnostics.Process.Start(string.Format(Properties.NonLocalizeResources.urlGithubHomeWithVersion, versionStr));
         }
 
         private void llbInfoTipPattVar_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
