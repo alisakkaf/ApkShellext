@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using SharpShell.Diagnostics;
 using System;
 using System.Collections.Generic;
@@ -239,21 +239,24 @@ namespace ApkShellext {
 
         public static void getLatestVersion() {
             try {
-                byte[] buf = new byte[1024];
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Properties.NonLocalizeResources.urlGithubHomeLatest);
-                // execute the request
-                HttpWebResponse response = (HttpWebResponse)
-                    request.GetResponse();
-                // we will read data via the response stream
-                Stream resStream = response.GetResponseStream();
-                int count = resStream.Read(buf, 0, buf.Length);
-                string s = "";
-                if (count != 0) {
-                    s = Encoding.ASCII.GetString(buf, 0, count);
+                request.Method = "HEAD";
+                request.AllowAutoRedirect = true;
+                request.UserAgent = "ApkShellext-Updater";
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse()) {
+                    string finalUrl = response.ResponseUri.ToString();
+                    int lastSlash = finalUrl.LastIndexOf('/');
+                    string tag = lastSlash >= 0 ? finalUrl.Substring(lastSlash + 1) : "";
+                    if (tag.StartsWith("v", StringComparison.OrdinalIgnoreCase)) {
+                        tag = tag.Substring(1);
+                    }
+                    string[] parts = tag.Split('.');
+                    if (parts.Length == 3) {
+                        tag = tag + ".0";
+                    }
+                    Utility.SaveSetting("LatestVersion", tag);
+                    Log(null, "Update", "Get the latest version :" + tag);
                 }
-                s = Regex.Replace(s, @"\t|\n|\r", "");
-                Utility.SaveSetting("LatestVersion", s);
-                Log(null, "Update", "Get the latest version :" + s);
             } catch (Exception ex) {
                 Log(null, "Update", "Error During check update:" + ex.Message);
             }
@@ -311,6 +314,7 @@ namespace ApkShellext {
         public static Bitmap AppTypeIcon(AppPackageReader.AppType type) {
             switch (type) {
                 case AppPackageReader.AppType.AndroidApp:
+                case AppPackageReader.AppType.XAndroidApp:
                     return Properties.NonLocalizeResources.iconAndroid;
                 case AppPackageReader.AppType.iOSApp:
                     return Properties.NonLocalizeResources.iconApple;
