@@ -17,6 +17,7 @@ namespace ApkShellext {
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".ipa")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appxbundle")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appx")]
