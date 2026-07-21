@@ -27,7 +27,7 @@ namespace ApkShellextTest
         private void Button1_Click(object sender, EventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = "apkfile|*.apk";
+            dialog.Filter = "Android Packages (*.apk, *.xapk)|*.apk;*.xapk";
             dialog.ShowDialog();
             textBox1.Text = dialog.FileName;
             //parseapk();
