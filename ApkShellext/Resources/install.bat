@@ -65,18 +65,18 @@ ECHO -------------------------------------------------------------------
 %REGASM% /codebase "%~dp0\ApkShellext.dll"
 echo.
 
-ECHO -------------------------------------------------------------------
-ECHO   Configuring Watermark Settings...
-ECHO -------------------------------------------------------------------
-CHOICE /C YN /M "   Would you like to enable the 'By AliSakkaF' watermark overlay on icons?"
-IF ERRORLEVEL 2 (
-    reg add "HKCU\Software\ApkShellext" /v ShowAliSakkaFWatermark /t REG_SZ /d "False" /f >nul
-    echo   [STATUS] Watermark overlay has been disabled.
-) ELSE (
-    reg add "HKCU\Software\ApkShellext" /v ShowAliSakkaFWatermark /t REG_SZ /d "True" /f >nul
-    echo   [STATUS] Watermark overlay has been enabled.
-)
-echo.
+:: ECHO -------------------------------------------------------------------
+:: ECHO   Configuring Watermark Settings...
+:: ECHO -------------------------------------------------------------------
+:: CHOICE /C YN /M "   Would you like to enable the 'By AliSakkaF' watermark overlay on icons?"
+:: IF ERRORLEVEL 2 (
+::     reg add "HKCU\Software\ApkShellext" /v ShowAliSakkaFWatermark /t REG_SZ /d "False" /f >nul
+::     echo   [STATUS] Watermark overlay has been disabled.
+:: ) ELSE (
+::     reg add "HKCU\Software\ApkShellext" /v ShowAliSakkaFWatermark /t REG_SZ /d "True" /f >nul
+::     echo   [STATUS] Watermark overlay has been enabled.
+:: )
+:: echo.
 
 ECHO ===================================================================
 ECHO   Installation Completed Successfully!
