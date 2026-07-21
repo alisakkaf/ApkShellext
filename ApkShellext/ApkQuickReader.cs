@@ -1125,6 +1125,7 @@ namespace ApkQuickReader
         private ZipFile zip;
         private byte[] resources;
         private byte[] manifest;
+        private Stream inputStream;
 
         private const string AndroidManifestXML = @"androidmanifest.xml";
         private const string Resources_arsc = @"resources.arsc";
@@ -1150,12 +1151,35 @@ namespace ApkQuickReader
         /// <param name="culture"></param>
         public ApkReader(string filename, string culture = "") {
             FileName = filename;
-            openStream(new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read));
+            FileStream fs = null;
+            try {
+                fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                inputStream = fs;
+                openStream(fs);
+            } catch {
+                if (zip != null) {
+                    try { zip.Close(); } catch {}
+                    zip = null;
+                }
+                if (fs != null) {
+                    try { fs.Close(); } catch {}
+                }
+                throw;
+            }
         }
 
         public ApkReader(Stream stream, string culture = "") {
             Log("Opening apk from stream");
-            openStream(stream);
+            try {
+                inputStream = stream;
+                openStream(stream);
+            } catch {
+                if (zip != null) {
+                    try { zip.Close(); } catch {}
+                    zip = null;
+                }
+                throw;
+            }
         }
 
         private void openStream(Stream stream) {
@@ -1168,6 +1192,7 @@ namespace ApkQuickReader
             s = new BinaryReader(zip.GetInputStream(en));
             resources = s.ReadBytes((int)en.Size);
         }
+
 
         public override AppPackageReader.AppType Type {
             get {
@@ -1980,8 +2005,15 @@ namespace ApkQuickReader
             if (disposing) {
                 resources = null;
                 manifest = null;
-                if (zip != null)
-                    zip.Close();
+                if (zip != null) {
+                    try { zip.Close(); } catch {}
+                    zip = null;
+                }
+                if (inputStream != null) {
+                    try { inputStream.Close(); } catch {}
+                    try { inputStream.Dispose(); } catch {}
+                    inputStream = null;
+                }
             }
             disposed = true;
             base.Dispose(disposing);
