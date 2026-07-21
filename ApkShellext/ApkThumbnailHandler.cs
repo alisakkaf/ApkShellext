@@ -18,6 +18,7 @@ namespace ApkShellext {
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
     public class ApkThumbnailHandler : SharpThumbnailHandler {
         protected override Bitmap GetThumbnailImage(uint width) {
             Bitmap m_icon = null;
@@ -33,8 +34,21 @@ namespace ApkShellext {
 
             try {
                 int outputSize = (int) width;
-                using (AppPackageReader reader = new ApkReader(SelectedItemStream)) {
+                MemoryStream memStream = new MemoryStream();
+                SelectedItemStream.CopyTo(memStream);
+                memStream.Position = 0;
+
+                AppPackageReader reader = null;
+                try {
+                    reader = new ApkReader(memStream);
                     Log("Reading stream from " + reader.AppName);
+                } catch (Exception) {
+                    memStream.Position = 0;
+                    reader = new XapkReader(memStream);
+                    Log("Reading XAPK stream from " + reader.AppName);
+                }
+
+                using (reader) {
                     m_icon = reader.Icon;
                 }
 
@@ -79,6 +93,11 @@ namespace ApkShellext {
             using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"\CLSID\.apk")) {
                 if (key != null) {
                     // disable the shadow under thumbnail, make it more looks like an icon
+                    key.SetValue("Treatment", 0);
+                }
+            }
+            using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"\CLSID\.xapk")) {
+                if (key != null) {
                     key.SetValue("Treatment", 0);
                 }
             }
