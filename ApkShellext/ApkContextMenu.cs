@@ -28,6 +28,7 @@ namespace ApkShellext {
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".ipa")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appxbundle")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appx")]
@@ -62,13 +63,14 @@ namespace ApkShellext {
 
             bool hasapk = false, hasipa = false, hasappx = false, hasappxbundle = false;
             foreach (var p in SelectedItemPaths) {
-                if (p.EndsWith(AppPackageReader.extAPK))
+                string ext = Path.GetExtension(p).ToLower();
+                if (ext == AppPackageReader.extAPK || ext == AppPackageReader.extXAPK)
                     hasapk = true;
-                if (p.EndsWith(AppPackageReader.extIPA))
+                if (ext == AppPackageReader.extIPA)
                     hasipa = true;
-                if (p.EndsWith(AppPackageReader.extAPPX))
+                if (ext == AppPackageReader.extAPPX)
                     hasappx = true;
-                if (p.EndsWith(AppPackageReader.extAPPXBUNDLE))
+                if (ext == AppPackageReader.extAPPXBUNDLE)
                     hasappxbundle = true;
             };
 
@@ -303,7 +305,7 @@ namespace ApkShellext {
             string suffix = Path.GetExtension(path);
             string newFileName = "";
             string renamePattern = Utility.GetSetting("RenamePattern", NonLocalizeResources.strRenamePatternDefault);
-            bool isapk = SelectedItemPaths.ElementAt(0).EndsWith(".apk");
+            bool isapk = SelectedItemPaths.ElementAt(0).EndsWith(".apk") || SelectedItemPaths.ElementAt(0).EndsWith(".xapk");
             bool isipa = SelectedItemPaths.ElementAt(0).EndsWith(".ipa");
 
             try {
@@ -429,7 +431,7 @@ namespace ApkShellext {
 
         private void gotoGooglePlay() {
             foreach (var p in SelectedItemPaths) {
-                using (ApkReader reader = new ApkReader(p)) {
+                using (AppPackageReader reader = AppPackageReader.Read(p)) {
                     string package = reader.PackageName;
                     Process.Start(string.Format(Properties.NonLocalizeResources.urlGooglePlay, package));
                 }
@@ -438,7 +440,7 @@ namespace ApkShellext {
 
         private void gotoAmazonAppStore() {
             foreach (var p in SelectedItemPaths) {
-                using (ApkReader reader = new ApkReader(p)) {
+                using (AppPackageReader reader = AppPackageReader.Read(p)) {
                     string package = reader.PackageName;
                     Process.Start(string.Format(Properties.NonLocalizeResources.urlAmazonAppStore, package));
                 }
@@ -447,7 +449,7 @@ namespace ApkShellext {
 
         private void gotoApkMirror() {
             foreach (var p in SelectedItemPaths) {
-                using (ApkReader reader = new ApkReader(p)) {
+                using (AppPackageReader reader = AppPackageReader.Read(p)) {
                     string package = reader.PackageName;
                     Process.Start(string.Format(Properties.NonLocalizeResources.urlApkMirror, reader.Publisher, package));
                 }
