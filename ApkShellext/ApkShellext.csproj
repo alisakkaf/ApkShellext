@@ -43,7 +43,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>apkshellext2.key.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>apkshellext2.key.pfx.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
@@ -104,6 +104,7 @@
     <Compile Include="Ionic.Zlib\Ionic.Zlib\ZlibConstants.cs" />
     <Compile Include="Ionic.Zlib\Ionic.Zlib\ZlibStream.cs" />
     <Compile Include="IpaReader.cs" />
+    <Compile Include="XapkReader.cs" />
     <Compile Include="PlistCS\PlistCS\Src\Plist.cs" />
     <Compile Include="PNGDecrush\PNGDecrush\BinaryReaderNetworkHostOrderAdditions.cs" />
     <Compile Include="PNGDecrush\PNGDecrush\PNGChunk.cs" />
@@ -734,31 +735,11 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>copy /Y $(ProjectDir)\Resources\install.bat  $(TargetDir)
-copy /Y $(ProjectDir)\Resources\restart_explorer.bat  $(TargetDir)
-copy /Y $(ProjectDir)\Resources\uninstall.bat  $(TargetDir)
-copy /Y $(ProjectDir)\WebP-wrapper\WebPTest\libwebp_*.dll $(TargetDir)
-if $(ConfigurationName) == Release (
-"C:\Program Files\7-Zip\7z.exe" a ApkShellext2.7z ApkShellext2.dll *.bat libwebp_*.dll
-"C:\Program Files\7-Zip\7z.exe" a ar-SA.7z ar-SA
-"C:\Program Files\7-Zip\7z.exe" a de-DE.7z de-DE
-"C:\Program Files\7-Zip\7z.exe" a el-GR.7z el-GR
-"C:\Program Files\7-Zip\7z.exe" a es-ES.7z es-ES
-"C:\Program Files\7-Zip\7z.exe" a fa-IR.7z fa-IR
-"C:\Program Files\7-Zip\7z.exe" a  fr-FR.7z fr-FR
-"C:\Program Files\7-Zip\7z.exe" a  he-IL.7z he-IL
-"C:\Program Files\7-Zip\7z.exe" a  it-IT.7z it-IT
-"C:\Program Files\7-Zip\7z.exe" a  ja-JP.7z ja-JP
-"C:\Program Files\7-Zip\7z.exe" a  ko-KR.7z ko-KR
-"C:\Program Files\7-Zip\7z.exe" a  pt-PT.7z pt-PT
-"C:\Program Files\7-Zip\7z.exe" a  ru-RU.7z ru-RU
-"C:\Program Files\7-Zip\7z.exe" a  tr-TR.7z tr-TR
-"C:\Program Files\7-Zip\7z.exe" a zh-CN.7z zh-CN
-"C:\Program Files\7-Zip\7z.exe" a zh-TW.7z zh-TW
-) else (
-copy /Y $(ProjectDir)\Resources\debug.bat  $(TargetDir)
-)
-start $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(ProjectDir)Resources\install.bat" "$(TargetDir)"
+copy /Y "$(ProjectDir)Resources\restart_explorer.bat" "$(TargetDir)"
+copy /Y "$(ProjectDir)Resources\uninstall.bat" "$(TargetDir)"
+copy /Y "$(ProjectDir)Resources\debug.bat" "$(TargetDir)"
+copy /Y "$(ProjectDir)WebP-wrapper\WebPTest\libwebp_*.dll" "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
