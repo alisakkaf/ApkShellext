@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -314,4 +314,34 @@
   
   
   
+  <data name="menuInstallAdb" xml:space="preserve">
+    <value>تثبيت على الجهاز (ADB)</value>
+  </data>
+  <data name="strAdbInstalling" xml:space="preserve">
+    <value>جاري تثبيت التطبيق على الجهاز...</value>
+  </data>
+  <data name="strAdbNoDevice" xml:space="preserve">
+    <value>لا يوجد جهاز أندرويد موصل. يرجى توصيل الهاتف عبر USB وتفعيل تصحيح USB (USB Debugging).</value>
+  </data>
+  <data name="strAdbUnauthorized" xml:space="preserve">
+    <value>الجهاز غير مصرح به! يرجى التحقق من شاشة الهاتف والموافقة على إذن تصحيح USB (RSA).</value>
+  </data>
+  <data name="strAdbOffline" xml:space="preserve">
+    <value>الجهاز غير متصل (Offline). يرجى إعادة توصيل كابل USB.</value>
+  </data>
+  <data name="strAdbSuccess" xml:space="preserve">
+    <value>تم تثبيت التطبيق بنجاح!</value>
+  </data>
+  <data name="strAdbFailed" xml:space="preserve">
+    <value>فشل التثبيت: {0}</value>
+  </data>
+  <data name="strAdbNotFound" xml:space="preserve">
+    <value>لم يتم العثور على أداة ADB (adb.exe). يرجى تحديد المسار في الإعدادات أو تثبيت Platform Tools.</value>
+  </data>
+  <data name="strAdbCancelled" xml:space="preserve">
+    <value>تم إلغاء عملية التثبيت.</value>
+  </data>
+  <data name="btnClose" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
 </root>
