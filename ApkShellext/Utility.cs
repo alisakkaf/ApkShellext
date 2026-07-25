@@ -380,6 +380,20 @@ namespace ApkShellext {
 #endif
         }
 
-        
+        public static string GetResourceString(string name, string defaultValue = "") {
+            try {
+                string val = Resources.ResourceManager.GetString(name, Resources.Culture);
+                if (!string.IsNullOrEmpty(val)) return val;
+            } catch { }
+            return defaultValue;
+        }
+
+        public static bool IsRtl() {
+            try {
+                return CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft;
+            } catch {
+                return false;
+            }
+        }
     }
 }
