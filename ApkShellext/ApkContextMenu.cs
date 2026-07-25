@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Net;
@@ -127,6 +128,15 @@ namespace ApkShellext {
             mainMenu.DropDownItems.Add("-");
 
             if (hasapk) {
+                #region ADB Install Menu
+                ToolStripMenuItem adbInstallMenu = new ToolStripMenuItem {
+                    Text = Utility.GetResourceString("menuInstallAdb", "Install on Device (ADB)"),
+                    Image = Utility.ResizeBitmap(NonLocalizeResources.iconGooglePlay, size)
+                };
+                adbInstallMenu.Click += (sender, args) => installViaAdb();
+                mainMenu.DropDownItems.Add(adbInstallMenu);
+                #endregion
+
                 #region APK Menu
                 ToolStripMenuItem storeMenu = new ToolStripMenuItem {
                     Text = Resources.strSearchStore,
@@ -363,6 +373,41 @@ namespace ApkShellext {
             }
         }
 
+        public static string ReplaceVariables(string ori, CachedPackageInfo info, string filePath) {
+            if (info == null) return ori;
+            string[] tokens = ori.Split(new char[] { '%' });
+            string newstr = "";
+            bool inpattern = false;
+            foreach (string t in tokens) {
+                if (!inpattern) {
+                    newstr = newstr + t;
+                } else {
+                    string replacement = "";
+                    if (t == NonLocalizeResources.varAppName)
+                        replacement = info.AppName;
+                    else if (t == NonLocalizeResources.varPackage)
+                        replacement = info.PackageName;
+                    else if (t == NonLocalizeResources.varPublisher)
+                        replacement = info.Publisher;
+                    else if (t == NonLocalizeResources.varVersion)
+                        replacement = info.Version;
+                    else if (t == NonLocalizeResources.varRevision)
+                        replacement = info.Revision;
+                    else if (t == NonLocalizeResources.varFileSize)
+                        replacement = Utility.getFileSize(filePath);
+                    else if (t == NonLocalizeResources.varOS)
+                        replacement = (info.Type == AppPackageReader.AppType.AndroidApp || info.Type == AppPackageReader.AppType.XAndroidApp ? "Android"
+                            : (info.Type == AppPackageReader.AppType.iOSApp ? "iOS" : "Windows"));
+                    else if (t == NonLocalizeResources.varLastModify)
+                        replacement = File.GetLastWriteTime(filePath).ToString("dd/MM/yy HH:mm:ss");
+
+                    newstr = newstr + replacement;
+                }
+                inpattern = !inpattern;
+            }
+            return newstr;
+        }
+
         public static string ReplaceVariables(string ori, AppPackageReader reader) {
             string[] tokens = ori.Split(new char[] { '%' });
             string newstr = "";
@@ -431,8 +476,14 @@ namespace ApkShellext {
 
         private void gotoGooglePlay() {
             foreach (var p in SelectedItemPaths) {
-                using (AppPackageReader reader = AppPackageReader.Read(p)) {
-                    string package = reader.PackageName;
+                var cached = PackageCache.Get(p);
+                string package = cached != null ? cached.PackageName : null;
+                if (string.IsNullOrEmpty(package)) {
+                    using (AppPackageReader reader = AppPackageReader.Read(p)) {
+                        package = reader?.PackageName;
+                    }
+                }
+                if (!string.IsNullOrEmpty(package)) {
                     Process.Start(string.Format(Properties.NonLocalizeResources.urlGooglePlay, package));
                 }
             }
@@ -440,8 +491,14 @@ namespace ApkShellext {
 
         private void gotoAmazonAppStore() {
             foreach (var p in SelectedItemPaths) {
-                using (AppPackageReader reader = AppPackageReader.Read(p)) {
-                    string package = reader.PackageName;
+                var cached = PackageCache.Get(p);
+                string package = cached != null ? cached.PackageName : null;
+                if (string.IsNullOrEmpty(package)) {
+                    using (AppPackageReader reader = AppPackageReader.Read(p)) {
+                        package = reader?.PackageName;
+                    }
+                }
+                if (!string.IsNullOrEmpty(package)) {
                     Process.Start(string.Format(Properties.NonLocalizeResources.urlAmazonAppStore, package));
                 }
             }
@@ -449,9 +506,17 @@ namespace ApkShellext {
 
         private void gotoApkMirror() {
             foreach (var p in SelectedItemPaths) {
-                using (AppPackageReader reader = AppPackageReader.Read(p)) {
-                    string package = reader.PackageName;
-                    Process.Start(string.Format(Properties.NonLocalizeResources.urlApkMirror, reader.Publisher, package));
+                var cached = PackageCache.Get(p);
+                string package = cached != null ? cached.PackageName : null;
+                string publisher = cached != null ? cached.Publisher : null;
+                if (string.IsNullOrEmpty(package)) {
+                    using (AppPackageReader reader = AppPackageReader.Read(p)) {
+                        package = reader?.PackageName;
+                        publisher = reader?.Publisher;
+                    }
+                }
+                if (!string.IsNullOrEmpty(package)) {
+                    Process.Start(string.Format(Properties.NonLocalizeResources.urlApkMirror, publisher, package));
                 }
             }
         }
@@ -478,6 +543,21 @@ namespace ApkShellext {
                         CultureInfo ci = System.Threading.Thread.CurrentThread.CurrentCulture;
                         Process.Start(string.Format(Properties.NonLocalizeResources.urlMicrosoftStore,reader.AppID));
                     }
+                }
+            }
+        }
+
+        private void installViaAdb() {
+            foreach (var path in SelectedItemPaths) {
+                string ext = Path.GetExtension(path).ToLower();
+                if (ext == AppPackageReader.extAPK || ext == AppPackageReader.extXAPK) {
+                    Thread thread = new Thread(() => {
+                        using (AdbInstallForm form = new AdbInstallForm(path)) {
+                            Application.Run(form);
+                        }
+                    });
+                    thread.SetApartmentState(ApartmentState.STA);
+                    thread.Start();
                 }
             }
         }
