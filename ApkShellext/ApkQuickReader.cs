@@ -1182,15 +1182,29 @@ namespace ApkQuickReader
             }
         }
 
+        private byte[] ResourcesBytes {
+            get {
+                if (resources == null && zip != null) {
+                    ZipEntry en = zip.GetEntry(Resources_arsc);
+                    if (en != null) {
+                        using (BinaryReader s = new BinaryReader(zip.GetInputStream(en))) {
+                            resources = s.ReadBytes((int)en.Size);
+                        }
+                    }
+                }
+                return resources;
+            }
+        }
+
         private void openStream(Stream stream) {
             zip = new ZipFile(stream);
             ZipEntry en = zip.GetEntry(AndroidManifestXML);
-            BinaryReader s = new BinaryReader(zip.GetInputStream(en));
-            manifest = s.ReadBytes((int)en.Size);
-
-            en = zip.GetEntry(Resources_arsc);
-            s = new BinaryReader(zip.GetInputStream(en));
-            resources = s.ReadBytes((int)en.Size);
+            if (en != null) {
+                using (BinaryReader s = new BinaryReader(zip.GetInputStream(en))) {
+                    manifest = s.ReadBytes((int)en.Size);
+                }
+            }
+            // Lazy load resources.arsc on demand in ResourcesBytes property
         }
 
 
@@ -1885,7 +1899,10 @@ namespace ApkQuickReader
             searchstack.Push(id);
             ApkResource res = new ApkResource(id);
 
-            using (MemoryStream ms = new MemoryStream(resources))
+            byte[] resData = ResourcesBytes;
+            if (resData == null) return res;
+
+            using (MemoryStream ms = new MemoryStream(resData))
             using (BinaryReader br = new BinaryReader(ms)) {
                 ms.Seek(8, SeekOrigin.Begin); // jump type/headersize/chunksize
                 int packageCount = br.ReadInt32();
