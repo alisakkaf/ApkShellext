@@ -81,6 +81,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdbInstallForm.cs" />
+    <Compile Include="PackageCache.cs" />
     <Compile Include="ApkChunk.cs" />
     <Compile Include="ApkQuickReader.cs" />
     <Compile Include="ApkIconHandler.cs" />
