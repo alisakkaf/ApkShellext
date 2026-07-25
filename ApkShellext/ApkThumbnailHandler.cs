@@ -19,69 +19,74 @@ namespace ApkShellext {
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".ipa")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".appxbundle")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".appx")]
     public class ApkThumbnailHandler : SharpThumbnailHandler {
         protected override Bitmap GetThumbnailImage(uint width) {
-            Bitmap m_icon = null;
-
-            //Log("Thumbnail is using setting file from: " + ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal).FilePath);
-
-            //if (!Settings.Default.EnableThumbnail) {
-            //    return null;
-            //}
             if (Utility.GetSetting("EnableThumbnail") != "True") {
                 return null;
             }
 
             try {
-                int outputSize = (int) width;
-                MemoryStream memStream = new MemoryStream();
-                SelectedItemStream.CopyTo(memStream);
-                memStream.Position = 0;
+                int outputSize = (int)width;
+                Bitmap rawIcon = null;
 
-                AppPackageReader reader = null;
-                try {
-                    reader = new ApkReader(memStream);
-                    Log("Reading stream from " + reader.AppName);
-                } catch (Exception) {
-                    memStream.Position = 0;
-                    reader = new XapkReader(memStream);
-                    Log("Reading XAPK stream from " + reader.AppName);
+                if (SelectedItemStream != null && SelectedItemStream.CanSeek) {
+                    SelectedItemStream.Position = 0;
+                    AppPackageReader reader = null;
+                    try {
+                        reader = new ApkReader(SelectedItemStream);
+                    } catch {
+                        try {
+                            SelectedItemStream.Position = 0;
+                            reader = new XapkReader(SelectedItemStream);
+                        } catch {
+                            try {
+                                SelectedItemStream.Position = 0;
+                                reader = new IpaReader(SelectedItemStream);
+                            } catch {
+                                try {
+                                    SelectedItemStream.Position = 0;
+                                    reader = new AppxBundleReader(SelectedItemStream);
+                                } catch {
+                                    SelectedItemStream.Position = 0;
+                                    reader = new AppxReader(SelectedItemStream);
+                                }
+                            }
+                        }
+                    }
+
+                    using (reader) {
+                        if (reader != null) {
+                            rawIcon = reader.Icon;
+                        }
+                    }
                 }
 
-                using (reader) {
-                    m_icon = reader.Icon;
-                }
+                if (rawIcon == null)
+                    throw new Exception("Cannot find Icon from Stream");
 
-                if (m_icon == null)
-                    throw new Exception("Cannot find Icon from Stream, draw default");
-                if (m_icon.Height < outputSize &&
-                    //!Settings.Default.StretchThumbnail)
-                    (Utility.GetSetting("StretchThumbnail","True")!="True"))
-                    outputSize = m_icon.Height;
+                if (rawIcon.Height < outputSize && Utility.GetSetting("StretchThumbnail", "True") != "True")
+                    outputSize = rawIcon.Height;
 
-                Log("Got icon, resizing...");
-                //if (Settings.Default.ShowOverLayIcon) {
-                if (Utility.GetSetting("ShowOverlayIcon")=="True") {
-                    Log("Draw overlay");
-                    m_icon = Utility.CombineBitmap(m_icon,
+                Bitmap finalBitmap = null;
+                if (Utility.GetSetting("ShowOverlayIcon") == "True") {
+                    finalBitmap = Utility.CombineBitmap(rawIcon,
                            Utility.AppTypeIcon(AppPackageReader.AppType.AndroidApp),
-                           new Rectangle(0, 0, outputSize , outputSize),
-                           new Rectangle(0, (int)outputSize / 2, (int)outputSize / 2, (int)outputSize / 2),
+                           new Rectangle(0, 0, outputSize, outputSize),
+                           new Rectangle(0, outputSize / 2, outputSize / 2, outputSize / 2),
                            new Size(outputSize, outputSize));
+                    rawIcon.Dispose();
                 } else {
-                    m_icon = Utility.ResizeBitmap(m_icon, outputSize);
+                    finalBitmap = Utility.ResizeBitmap(rawIcon, new Size(outputSize, outputSize));
+                    if (finalBitmap != rawIcon) {
+                        rawIcon.Dispose();
+                    }
                 }
-#if DEBUG
-                string p = Path.GetTempFileName();
-                m_icon.Save(p);
-                Log("Save m_icon to " + p);
-#endif
-                return m_icon;
-            } catch (Exception ex){
-                Log("Error in reading icon from stream, draw default");
-                Log(ex.Message);
-                // read error, draw the default icon
-                //m_icon = Utility.AppTypeIcon(AppPackageReader.AppType.AndroidApp);
+                return finalBitmap;
+            } catch (Exception ex) {
+                Log("Error in reading thumbnail icon: " + ex.Message);
                 return null;
             }
         }
@@ -90,16 +95,15 @@ namespace ApkShellext {
         public static void postDoRegister(Type type, RegistrationType registrationType) {
             Console.WriteLine("Registering " + type.FullName );
 
-            using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"\CLSID\.apk")) {
-                if (key != null) {
-                    // disable the shadow under thumbnail, make it more looks like an icon
-                    key.SetValue("Treatment", 0);
-                }
-            }
-            using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"\CLSID\.xapk")) {
-                if (key != null) {
-                    key.SetValue("Treatment", 0);
-                }
+            string[] exts = new string[] { ".apk", ".xapk", ".ipa", ".appx", ".appxbundle" };
+            foreach (string ext in exts) {
+                try {
+                    using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"\CLSID\" + ext)) {
+                        if (key != null) {
+                            key.SetValue("Treatment", 0);
+                        }
+                    }
+                } catch { }
             }
 
             #region Clean up older versions registry
