@@ -32,28 +32,47 @@ namespace ApkShellext {
         protected override Icon GetIcon(bool smallIcon, uint iconSize) {
             if (m_icon == null) {
                 try {
-                    using (AppPackageReader reader = AppPackageReader.Read(SelectedItemPath)) {
-                        if (reader.Type == AppPackageReader.AppType.iOSApp && Utility.GetSetting("ShowIpaIcon", "True") != "True") {
-                            m_icon = Utility.AppTypeIcon(reader.Type);
-                        } else if ((reader.Type == AppPackageReader.AppType.WindowsPhoneApp ||
-                            reader.Type == AppPackageReader.AppType.WindowsPhoneAppBundle) &&
-                            Utility.GetSetting("ShowAppxIcon", "False") != "True") {
-                            m_icon = Utility.AppTypeIcon(reader.Type);
+                    AppPackageReader.AppType appType = AppPackageReader.getAppType(SelectedItemPath);
+                    var cached = PackageCache.Get(SelectedItemPath);
+
+                    if (cached != null) {
+                        if (cached.Type == AppPackageReader.AppType.iOSApp && Utility.GetSetting("ShowIpaIcon", "True") != "True") {
+                            m_icon = Utility.AppTypeIcon(cached.Type);
+                        } else if ((cached.Type == AppPackageReader.AppType.WindowsPhoneApp || cached.Type == AppPackageReader.AppType.WindowsPhoneAppBundle) && Utility.GetSetting("ShowAppxIcon", "False") != "True") {
+                            m_icon = Utility.AppTypeIcon(cached.Type);
                         } else {
-                            m_icon = reader.getIcon(new Size((int)iconSize, (int)iconSize));
+                            m_icon = cached.GetIconClone(new Size((int)iconSize, (int)iconSize));
                         }
-                        if (m_icon == null)
-                            throw new Exception("Cannot find Icon for " + Path.GetFileName(SelectedItemPath) + ", draw default");
+                    } else {
+                        using (AppPackageReader reader = AppPackageReader.Read(SelectedItemPath)) {
+                            if (reader != null) {
+                                PackageCache.Put(SelectedItemPath, reader);
+
+                                if (reader.Type == AppPackageReader.AppType.iOSApp && Utility.GetSetting("ShowIpaIcon", "True") != "True") {
+                                    m_icon = Utility.AppTypeIcon(reader.Type);
+                                } else if ((reader.Type == AppPackageReader.AppType.WindowsPhoneApp || reader.Type == AppPackageReader.AppType.WindowsPhoneAppBundle) && Utility.GetSetting("ShowAppxIcon", "False") != "True") {
+                                    m_icon = Utility.AppTypeIcon(reader.Type);
+                                } else {
+                                    m_icon = reader.getIcon(new Size((int)iconSize, (int)iconSize));
+                                }
+                            }
+                        }
                     }
-                    if (Utility.GetSetting("ShowOverLayIcon") == "True")
-                        m_icon = Utility.CombineBitmap(m_icon,
-                           Utility.AppTypeIcon(AppPackageReader.getAppType(SelectedItemPath)),
+
+                    if (m_icon == null)
+                        throw new Exception("Cannot find Icon for " + Path.GetFileName(SelectedItemPath) + ", draw default");
+
+                    if (Utility.GetSetting("ShowOverLayIcon") == "True") {
+                        Bitmap tempOverlay = Utility.CombineBitmap(m_icon,
+                           Utility.AppTypeIcon(appType),
                            new Rectangle((int)(m_icon.Width * 0.05), 0, (int)(m_icon.Width * 0.95), (int)(m_icon.Height * 0.95)),
                            new Rectangle(0, (int)m_icon.Height / 2, (int)m_icon.Width / 2, (int)m_icon.Height / 2),
                            new Size((int)m_icon.Width, (int)m_icon.Height));
+                        m_icon.Dispose();
+                        m_icon = tempOverlay;
+                    }
                 } catch (Exception ex) {
                     Log("Error in reading icon for " + Path.GetFileName(SelectedItemPath) + ", draw default : " + ex.Message);
-                    // read error, draw the default icon
                     m_icon = Utility.AppTypeIcon(AppPackageReader.getAppType(SelectedItemPath));
                 }
             }
@@ -102,8 +121,20 @@ namespace ApkShellext {
                     }
                 } catch { }
             }
-            return Icon.FromHandle(resizedIcon.GetHicon());
+            IntPtr hIcon = resizedIcon.GetHicon();
+            try {
+                using (Icon tempIcon = Icon.FromHandle(hIcon)) {
+                    return (Icon)tempIcon.Clone();
+                }
+            } finally {
+                DestroyIcon(hIcon);
+                resizedIcon.Dispose();
+            }
         }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool DestroyIcon(IntPtr hIcon);
 
         [CustomRegisterFunction]
         public static void postDoRegister(Type type, RegistrationType registrationType) {
