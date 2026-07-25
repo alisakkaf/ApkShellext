@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -335,5 +335,35 @@ By checking this, rename app file as %AppName%_%Version%_%Revision%, otherwise, 
   </data>
   <data name="strPatreonTip" xml:space="preserve">
     <value>Support me on Patreon</value>
+  </data>
+  <data name="menuInstallAdb" xml:space="preserve">
+    <value>Install on Device (ADB)</value>
+  </data>
+  <data name="strAdbInstalling" xml:space="preserve">
+    <value>Installing package on device...</value>
+  </data>
+  <data name="strAdbNoDevice" xml:space="preserve">
+    <value>No Android device connected. Please connect a device via USB with USB Debugging enabled.</value>
+  </data>
+  <data name="strAdbUnauthorized" xml:space="preserve">
+    <value>Device unauthorized! Please check your phone screen and allow RSA USB debugging permission.</value>
+  </data>
+  <data name="strAdbOffline" xml:space="preserve">
+    <value>Device is offline. Please reconnect your USB cable.</value>
+  </data>
+  <data name="strAdbSuccess" xml:space="preserve">
+    <value>Application installed successfully!</value>
+  </data>
+  <data name="strAdbFailed" xml:space="preserve">
+    <value>Installation failed: {0}</value>
+  </data>
+  <data name="strAdbNotFound" xml:space="preserve">
+    <value>ADB tool (adb.exe) was not found. Please install Android Platform Tools.</value>
+  </data>
+  <data name="strAdbCancelled" xml:space="preserve">
+    <value>Installation cancelled.</value>
+  </data>
+  <data name="btnClose" xml:space="preserve">
+    <value>Close</value>
   </data>
 </root>
