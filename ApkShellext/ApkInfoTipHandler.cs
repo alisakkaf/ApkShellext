@@ -37,9 +37,18 @@ namespace ApkShellext {
                 bool isapk = SelectedItemPath.EndsWith(".apk");
                 bool isipa = SelectedItemPath.EndsWith(".ipa");
                 
-                using (AppPackageReader reader = AppPackageReader.Read(SelectedItemPath)) {
-                    return ApkContextMenu.ReplaceVariables(TipPattern, reader);
+                var cached = PackageCache.Get(SelectedItemPath);
+                if (cached != null) {
+                    return ApkContextMenu.ReplaceVariables(TipPattern, cached, SelectedItemPath);
                 }
+
+                using (AppPackageReader reader = AppPackageReader.Read(SelectedItemPath)) {
+                    if (reader != null) {
+                        PackageCache.Put(SelectedItemPath, reader);
+                        return ApkContextMenu.ReplaceVariables(TipPattern, reader);
+                    }
+                }
+                return Properties.Resources.strReadFileFailed;
             } catch (Exception ex) {
                 Log("Error happend during GetInfo : " + ex.Message);
                 return Properties.Resources.strReadFileFailed;
