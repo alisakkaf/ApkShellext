@@ -25,8 +25,21 @@ namespace ApkShellext {
             CanStop = true;
         }
 
-        static void Main() {
-            ServiceBase.Run(new apkShellextService());
+        static void Main(string[] args) {
+            bool interactive = Array.Exists(args, arg => arg.Equals("/interactive", StringComparison.OrdinalIgnoreCase));
+            if (interactive || Environment.UserInteractive) {
+                try {
+                    apkShellextService service = new apkShellextService();
+                    service.OnStartPublic(args);
+                    System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+                } catch { }
+            } else {
+                ServiceBase.Run(new apkShellextService());
+            }
+        }
+
+        public void OnStartPublic(string[] args) {
+            OnStart(args);
         }
 
         protected override void Dispose(bool disposing) {
@@ -85,11 +98,45 @@ namespace ApkShellext {
             }
         }
 
+        private int retryCount = 0;
+        private bool updateFinished = false;
+
         private void CheckForUpdatesCallback(object state) {
+            if (updateFinished) return;
+
+            bool result = false;
             try {
-                PerformAutoUpdateCheck();
+                result = PerformAutoUpdateCheck();
             } catch (Exception ex) {
                 LogEvent("Error during update check: " + ex.Message, EventLogEntryType.Error);
+                result = false;
+            }
+
+            if (result) {
+                updateFinished = true;
+                if (updateCheckTimer != null) {
+                    updateCheckTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                }
+                return;
+            }
+
+            retryCount++;
+            if (retryCount == 1) {
+                LogEvent("Update check did not find an update or network was unavailable. Retrying in 5 minutes (Attempt 1)...", EventLogEntryType.Information);
+                if (updateCheckTimer != null) {
+                    updateCheckTimer.Change(5 * 60 * 1000, Timeout.Infinite);
+                }
+            } else if (retryCount <= 4) {
+                LogEvent("Update check did not find an update. Retrying in 15 minutes (Attempt " + retryCount + " of 4)...", EventLogEntryType.Information);
+                if (updateCheckTimer != null) {
+                    updateCheckTimer.Change(15 * 60 * 1000, Timeout.Infinite);
+                }
+            } else {
+                updateFinished = true;
+                LogEvent("Completed maximum update check retries. Stopping update checks until service restarts.", EventLogEntryType.Information);
+                if (updateCheckTimer != null) {
+                    updateCheckTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                }
             }
         }
 
@@ -101,12 +148,13 @@ namespace ApkShellext {
         private const uint MB_SERVICE_NOTIFICATION = 0x00200000;
         private const int IDYES = 6;
 
-        private void PerformAutoUpdateCheck() {
+        private bool PerformAutoUpdateCheck() {
             string latestUrl = "https://github.com/alisakkaf/ApkShellext/releases/latest";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(latestUrl);
             request.Method = "HEAD";
             request.AllowAutoRedirect = true;
             request.UserAgent = "ApkShellextService-Updater";
+            request.Timeout = 15000;
 
             string finalTag = "";
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse()) {
@@ -117,16 +165,16 @@ namespace ApkShellext {
                 }
             }
 
-            if (string.IsNullOrEmpty(finalTag)) return;
+            if (string.IsNullOrEmpty(finalTag)) return false;
 
             string cleanVersionStr = finalTag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? finalTag.Substring(1) : finalTag;
             Version latestVer;
-            if (!Version.TryParse(cleanVersionStr, out latestVer)) return;
+            if (!Version.TryParse(cleanVersionStr, out latestVer)) return false;
 
             Version currentVer = Assembly.GetExecutingAssembly().GetName().Version;
-            if (latestVer <= currentVer) {
-                LogEvent("ApkShellext is up to date (" + currentVer.ToString() + ").", EventLogEntryType.Information);
-                return;
+            if (!IsNewerVersion(latestVer, currentVer)) {
+                LogEvent("ApkShellext is up to date (Current: " + currentVer.ToString() + ", GitHub: " + finalTag + ").", EventLogEntryType.Information);
+                return false;
             }
 
             LogEvent("New update detected: " + finalTag + " (Current: " + currentVer.ToString() + ")", EventLogEntryType.Information);
@@ -147,11 +195,11 @@ namespace ApkShellext {
 
             if (!File.Exists(tempZipPath)) {
                 LogEvent("Failed to download update package from " + downloadUrl, EventLogEntryType.Error);
-                return;
+                return false;
             }
 
             if (Directory.Exists(tempExtractDir)) {
-                Directory.Delete(tempExtractDir, true);
+                try { Directory.Delete(tempExtractDir, true); } catch { }
             }
             ZipFile.ExtractToDirectory(tempZipPath, tempExtractDir);
 
@@ -166,17 +214,43 @@ namespace ApkShellext {
                     shouldUpdate = true;
                 }
             } catch {
-                // If interactive dialog is not available in system environment, default to silent auto-update
                 shouldUpdate = true;
             }
 
             if (shouldUpdate) {
                 ExecuteSilentInstall(tempExtractDir, installTargetDir);
+                return true;
             }
+
+            return false;
+        }
+
+        private bool IsNewerVersion(Version latest, Version current) {
+            if (latest == null || current == null) return false;
+
+            int latestMajor = latest.Major >= 0 ? latest.Major : 0;
+            int latestMinor = latest.Minor >= 0 ? latest.Minor : 0;
+            int latestBuild = latest.Build >= 0 ? latest.Build : 0;
+
+            int currentMajor = current.Major >= 0 ? current.Major : 0;
+            int currentMinor = current.Minor >= 0 ? current.Minor : 0;
+            int currentBuild = current.Build >= 0 ? current.Build : 0;
+
+            if (latestMajor > currentMajor) return true;
+            if (latestMajor < currentMajor) return false;
+
+            if (latestMinor > currentMinor) return true;
+            if (latestMinor < currentMinor) return false;
+
+            if (latestBuild > currentBuild) return true;
+
+            return false;
         }
 
         private void ExecuteSilentInstall(string extractDir, string targetDir) {
             try {
+                LogEvent("Starting update installation to " + targetDir, EventLogEntryType.Information);
+
                 // 1. Detect current install directory if registered
                 string currentInstalledDir = "";
                 try {
@@ -189,63 +263,80 @@ namespace ApkShellext {
                             }
                         }
                     }
-                } catch {}
+                } catch { }
 
-                // 2. Run uninstall on old directory if present
+                // 2. Run uninstall.bat elevated on old directory if present
                 if (!string.IsNullOrEmpty(currentInstalledDir) && Directory.Exists(currentInstalledDir)) {
                     string oldUninstallBat = Path.Combine(currentInstalledDir, "uninstall.bat");
                     if (File.Exists(oldUninstallBat)) {
-                        RunCommandSilent("cmd.exe", "/c \"" + oldUninstallBat + "\"");
+                        RunCommandElevated(oldUninstallBat);
                     }
                 }
 
-                // 3. Kill explorer to release file locks
-                RunCommandSilent("taskkill.exe", "/F /IM explorer.exe /IM dllhost.exe");
-                Thread.Sleep(1000);
-
-                // 4. Create and copy files to target system drive directory (%SystemDrive%\ApkShellext_ByAliSakkaf)
+                // 3. Create target directory (%SystemDrive%\ApkShellext_ByAliSakkaf)
                 if (!Directory.Exists(targetDir)) {
                     Directory.CreateDirectory(targetDir);
                 }
 
-                // Copy files recursively
+                // 4. Copy files recursively with lock safety fallback
                 foreach (string dirPath in Directory.GetDirectories(extractDir, "*", SearchOption.AllDirectories)) {
                     Directory.CreateDirectory(dirPath.Replace(extractDir, targetDir));
                 }
                 foreach (string filePath in Directory.GetFiles(extractDir, "*.*", SearchOption.AllDirectories)) {
-                    File.Copy(filePath, filePath.Replace(extractDir, targetDir), true);
+                    string destPath = filePath.Replace(extractDir, targetDir);
+                    try {
+                        File.Copy(filePath, destPath, true);
+                    } catch {
+                        try {
+                            if (File.Exists(destPath)) {
+                                string oldFile = destPath + ".old_" + DateTime.Now.Ticks;
+                                File.Move(destPath, oldFile);
+                            }
+                            File.Copy(filePath, destPath, true);
+                        } catch { }
+                    }
                 }
 
-                // 5. Unblock downloaded files using PowerShell
-                RunCommandSilent("powershell.exe", "-Command \"Get-ChildItem -Path '" + targetDir + "' -Recurse | Unblock-File\"");
-
-                // 6. Run install.bat in target directory
+                // 5. Run install.bat elevated in the new target directory
                 string newInstallBat = Path.Combine(targetDir, "install.bat");
                 if (File.Exists(newInstallBat)) {
-                    RunCommandSilent("cmd.exe", "/c \"" + newInstallBat + "\"");
+                    RunCommandElevated(newInstallBat);
                 }
-
-                // 7. Restart explorer
-                RunCommandSilent("cmd.exe", "/c start explorer.exe");
 
                 LogEvent("Successfully updated ApkShellext to target directory: " + targetDir, EventLogEntryType.Information);
             } catch (Exception ex) {
                 LogEvent("Error executing silent update: " + ex.Message, EventLogEntryType.Error);
+            } finally {
+                EnsureExplorerRunning();
             }
         }
 
-        private void RunCommandSilent(string filename, string args) {
+        private void RunCommandElevated(string batFilePath) {
             try {
                 ProcessStartInfo psi = new ProcessStartInfo();
-                psi.FileName = filename;
-                psi.Arguments = args;
-                psi.CreateNoWindow = true;
-                psi.UseShellExecute = false;
-                psi.WindowStyle = ProcessWindowStyle.Hidden;
+                psi.FileName = batFilePath;
+                psi.WorkingDirectory = Path.GetDirectoryName(batFilePath);
+                psi.UseShellExecute = true;
+                psi.Verb = "runas";
                 using (Process proc = Process.Start(psi)) {
-                    proc.WaitForExit(15000);
+                    if (proc != null) {
+                        proc.WaitForExit();
+                    }
                 }
-            } catch {}
+            } catch (Exception ex) {
+                LogEvent("Error running elevated bat script " + batFilePath + ": " + ex.Message, EventLogEntryType.Warning);
+            }
+        }
+
+        private void EnsureExplorerRunning() {
+            try {
+                Process[] procs = Process.GetProcessesByName("explorer");
+                if (procs == null || procs.Length == 0) {
+                    ProcessStartInfo psi = new ProcessStartInfo("explorer.exe");
+                    psi.UseShellExecute = true;
+                    Process.Start(psi);
+                }
+            } catch { }
         }
 
         private void LogEvent(string msg, EventLogEntryType type) {
