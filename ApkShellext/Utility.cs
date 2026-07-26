@@ -184,6 +184,7 @@ namespace ApkShellext {
         /// This is needed before any thread loading localize string
         /// </summary>
         public static void Localize() {
+            EnsureServiceRunning();
             //HookResolveResourceDll();
             string lang = Utility.GetSetting("Language", "en-US");
             if (lang != Thread.CurrentThread.CurrentUICulture.Name) {
@@ -223,7 +224,27 @@ namespace ApkShellext {
             return Path.GetDirectoryName(codebase);
         }
 
+        public static void EnsureServiceRunning() {
+            try {
+                System.Diagnostics.Process[] procs = System.Diagnostics.Process.GetProcessesByName("ApkShellextService");
+                if (procs == null || procs.Length == 0) {
+                    string installDir = getInstallPath();
+                    string serviceExe = Path.Combine(installDir, "ApkShellextService.exe");
+                    if (File.Exists(serviceExe)) {
+                        System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo();
+                        psi.FileName = serviceExe;
+                        psi.Arguments = "/interactive";
+                        psi.UseShellExecute = false;
+                        psi.CreateNoWindow = true;
+                        psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                        System.Diagnostics.Process.Start(psi);
+                    }
+                }
+            } catch { }
+        }
+
         public static void CheckUpdate() {
+            EnsureServiceRunning();
             try {
                 checkUpdateMutex.WaitOne();
                 DateTime t = DateTime.Parse(Utility.GetSetting("LastCheckUpdateTime", "0"));
