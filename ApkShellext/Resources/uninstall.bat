@@ -103,7 +103,15 @@ for %%E in (%EXTS%) do (
 powershell -NoProfile -Command "Write-Host '      Registry keys and shell associations removed successfully.' -ForegroundColor Green"
 
 echo.
-powershell -NoProfile -Command "Write-Host '[3/4] Clearing Thumbnail and Icon Caches...' -ForegroundColor Yellow"
+powershell -NoProfile -Command "Write-Host '[3/5] Stopping and Removing Auto-Updater Service...' -ForegroundColor Yellow"
+net stop "ApkShellext Service" >nul 2>&1
+sc delete "ApkShellext Service" >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "ApkShellextService" /f >nul 2>&1
+taskkill /F /IM ApkShellextService.exe >nul 2>&1
+powershell -NoProfile -Command "Write-Host '      Auto-Updater Service stopped and removed.' -ForegroundColor Green"
+
+echo.
+powershell -NoProfile -Command "Write-Host '[4/5] Clearing Thumbnail and Icon Caches...' -ForegroundColor Yellow"
 taskkill /F /IM explorer.exe >nul 2>&1
 taskkill /F /IM dllhost.exe >nul 2>&1
 timeout /t 1 /nobreak >nul 2>&1
@@ -115,7 +123,7 @@ del /f /q "%localappdata%\IconCache.db" >nul 2>&1
 powershell -NoProfile -Command "Write-Host '      Cache files cleared.' -ForegroundColor Green"
 
 echo.
-powershell -NoProfile -Command "Write-Host '[4/4] Restarting Windows Explorer Shell...' -ForegroundColor Yellow"
+powershell -NoProfile -Command "Write-Host '[5/5] Restarting Windows Explorer Shell...' -ForegroundColor Yellow"
 start explorer.exe
 powershell -NoProfile -Command "[SharpShell.Interop.Shell32]::SHChangeNotify(0x08000000, 0, [IntPtr]::Zero, [IntPtr]::Zero)" >nul 2>&1
 
