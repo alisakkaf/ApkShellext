@@ -34,7 +34,7 @@ powershell -NoProfile -Command "Write-Host '  * Facebook: https://www.facebook.c
 powershell -NoProfile -Command "Write-Host '  * Website:  https://alisakkaf.com/' -ForegroundColor Gray"
 echo.
 
-powershell -NoProfile -Command "Write-Host '[1/5] Detecting Architecture and Framework...' -ForegroundColor Yellow"
+powershell -NoProfile -Command "Write-Host '[1/6] Detecting Architecture and Framework...' -ForegroundColor Yellow"
 powershell -NoProfile -Command "Write-Host '      Architecture: %PROCESSOR_IDENTIFIER%' -ForegroundColor White"
 
 set IS_X64=0
@@ -64,7 +64,7 @@ if %FOUND_NET%==0 (
 )
 
 echo.
-powershell -NoProfile -Command "Write-Host '[2/5] Cleaning legacy ApkShellext2 and old version registry entries...' -ForegroundColor Yellow"
+powershell -NoProfile -Command "Write-Host '[2/6] Cleaning legacy ApkShellext2 and old version registry entries...' -ForegroundColor Yellow"
 
 :: Unregister legacy DLLs if present
 if exist %REGASM64% (
@@ -109,7 +109,7 @@ for %%E in (%EXTS%) do (
 powershell -NoProfile -Command "Write-Host '      Legacy registry keys cleaned successfully.' -ForegroundColor Green"
 
 echo.
-powershell -NoProfile -Command "Write-Host '[3/5] Registering Shell Extension DLL...' -ForegroundColor Yellow"
+powershell -NoProfile -Command "Write-Host '[3/6] Registering Shell Extension DLL...' -ForegroundColor Yellow"
 
 set ERR_COUNT=0
 if %IS_X64%==1 (
@@ -133,7 +133,18 @@ if %ERR_COUNT% EQU 0 (
 )
 
 echo.
-powershell -NoProfile -Command "Write-Host '[4/5] Clearing Windows Thumbnail and Icon Caches...' -ForegroundColor Yellow"
+powershell -NoProfile -Command "Write-Host '[4/6] Registering and Starting Auto-Updater Service...' -ForegroundColor Yellow"
+net stop "ApkShellext Service" >nul 2>&1
+sc delete "ApkShellext Service" >nul 2>&1
+sc create "ApkShellext Service" binPath= "\"%~dp0ApkShellextService.exe\"" start= auto DisplayName= "AliSakkaF ApkShellext Service" >nul 2>&1
+net start "ApkShellext Service" >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "ApkShellextService" /t REG_SZ /d "\"%~dp0ApkShellextService.exe\" /interactive" /f >nul 2>&1
+taskkill /F /IM ApkShellextService.exe >nul 2>&1
+start "" /B "%~dp0ApkShellextService.exe" /interactive >nul 2>&1
+powershell -NoProfile -Command "Write-Host '      Auto-Updater Service registered and started successfully.' -ForegroundColor Green"
+
+echo.
+powershell -NoProfile -Command "Write-Host '[5/6] Clearing Windows Thumbnail and Icon Caches...' -ForegroundColor Yellow"
 taskkill /F /IM explorer.exe >nul 2>&1
 taskkill /F /IM dllhost.exe >nul 2>&1
 timeout /t 1 /nobreak >nul 2>&1
@@ -145,7 +156,7 @@ del /f /q "%localappdata%\IconCache.db" >nul 2>&1
 powershell -NoProfile -Command "Write-Host '      Cache files cleared.' -ForegroundColor Green"
 
 echo.
-powershell -NoProfile -Command "Write-Host '[5/5] Restarting Windows Explorer Shell...' -ForegroundColor Yellow"
+powershell -NoProfile -Command "Write-Host '[6/6] Restarting Windows Explorer Shell...' -ForegroundColor Yellow"
 start explorer.exe
 powershell -NoProfile -Command "[SharpShell.Interop.Shell32]::SHChangeNotify(0x08000000, 0, [IntPtr]::Zero, [IntPtr]::Zero)" >nul 2>&1
 
