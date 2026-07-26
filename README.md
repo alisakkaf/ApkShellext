@@ -167,6 +167,11 @@ Unlike basic shell extensions that rely on external tools, **ApkShellext** featu
 * Added `debug.bat` providing full system diagnostics, 32-bit & 64-bit `regasm` testing, CLSID verification, cache clearing, and log generation (`ApkShellext_Debug_Log.txt`).
 * Full cleanup of legacy registry keys for `ApkShellext2` and `ApkShellext`.
 
+### 12. UAC Elevated Auto-Updater & Smart Network Retry Policy
+* Executable auto-updater triggers native Windows `Verb = "runas"` UAC elevation prompts for seamless installation without privilege errors.
+* Guaranteed Explorer restart protection in `finally` execution blocks prevents Explorer desktop freezes.
+* Implemented smart retry policy (initial 10s check, 5 min retry on network fail, then 3x 15 min retries) for offline network environments.
+
 ---
 
 ## Windows 11 & Architecture Compatibility
