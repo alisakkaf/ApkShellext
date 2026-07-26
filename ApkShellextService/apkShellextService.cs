@@ -149,80 +149,101 @@ namespace ApkShellext {
         private const int IDYES = 6;
 
         private bool PerformAutoUpdateCheck() {
-            string latestUrl = "https://github.com/alisakkaf/ApkShellext/releases/latest";
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(latestUrl);
-            request.Method = "HEAD";
-            request.AllowAutoRedirect = true;
-            request.UserAgent = "ApkShellextService-Updater";
-            request.Timeout = 15000;
-
-            string finalTag = "";
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse()) {
-                string finalUrl = response.ResponseUri.ToString();
-                int lastSlash = finalUrl.LastIndexOf('/');
-                if (lastSlash >= 0) {
-                    finalTag = finalUrl.Substring(lastSlash + 1);
-                }
-            }
-
-            if (string.IsNullOrEmpty(finalTag)) return false;
-
-            string cleanVersionStr = finalTag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? finalTag.Substring(1) : finalTag;
-            Version latestVer;
-            if (!Version.TryParse(cleanVersionStr, out latestVer)) return false;
-
-            Version currentVer = Assembly.GetExecutingAssembly().GetName().Version;
-            if (!IsNewerVersion(latestVer, currentVer)) {
-                LogEvent("ApkShellext is up to date (Current: " + currentVer.ToString() + ", GitHub: " + finalTag + ").", EventLogEntryType.Information);
-                return false;
-            }
-
-            LogEvent("New update detected: " + finalTag + " (Current: " + currentVer.ToString() + ")", EventLogEntryType.Information);
-
-            // Determine System Drive (e.g., C:\ or D:\)
-            string sysDrive = Path.GetPathRoot(Environment.SystemDirectory);
-            string installTargetDir = Path.Combine(sysDrive, "ApkShellext_ByAliSakkaf");
-
-            // Direct download link for release zip asset
-            string downloadUrl = string.Format("https://github.com/alisakkaf/ApkShellext/releases/download/{0}/ApkShellext-{0}.zip", finalTag);
-            string tempZipPath = Path.Combine(Path.GetTempPath(), string.Format("ApkShellext-{0}.zip", finalTag));
-            string tempExtractDir = Path.Combine(Path.GetTempPath(), string.Format("ApkShellext_Extract_{0}", finalTag));
-
-            using (WebClient wc = new WebClient()) {
-                wc.Headers.Add("User-Agent", "ApkShellextService-Downloader");
-                wc.DownloadFile(downloadUrl, tempZipPath);
-            }
-
-            if (!File.Exists(tempZipPath)) {
-                LogEvent("Failed to download update package from " + downloadUrl, EventLogEntryType.Error);
-                return false;
-            }
-
-            if (Directory.Exists(tempExtractDir)) {
-                try { Directory.Delete(tempExtractDir, true); } catch { }
-            }
-            ZipFile.ExtractToDirectory(tempZipPath, tempExtractDir);
-
-            // Ask user or execute update safely
-            bool shouldUpdate = false;
             try {
-                int result = MessageBox(IntPtr.Zero, 
-                    "A new update (" + finalTag + ") for ApkShellext is available!\n\nWould you like to install it automatically now?", 
-                    "ApkShellext Auto-Updater", 
-                    MB_YESNO | MB_ICONQUESTION | MB_SERVICE_NOTIFICATION);
-                if (result == IDYES) {
-                    shouldUpdate = true;
+                string latestUrl = "https://github.com/alisakkaf/ApkShellext/releases/latest";
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(latestUrl);
+                request.Method = "HEAD";
+                request.AllowAutoRedirect = true;
+                request.UserAgent = "ApkShellextService-Updater";
+                request.Timeout = 15000;
+
+                string finalTag = "";
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse()) {
+                    string finalUrl = response.ResponseUri.ToString();
+                    int lastSlash = finalUrl.LastIndexOf('/');
+                    if (lastSlash >= 0) {
+                        finalTag = finalUrl.Substring(lastSlash + 1);
+                    }
                 }
-            } catch {
-                shouldUpdate = true;
-            }
 
-            if (shouldUpdate) {
-                ExecuteSilentInstall(tempExtractDir, installTargetDir);
+                if (string.IsNullOrEmpty(finalTag)) return false;
+
+                string cleanVersionStr = finalTag.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? finalTag.Substring(1) : finalTag;
+                Version latestVer;
+                if (!Version.TryParse(cleanVersionStr, out latestVer)) return false;
+
+                Version currentVer = Assembly.GetExecutingAssembly().GetName().Version;
+                if (!IsNewerVersion(latestVer, currentVer)) {
+                    LogEvent("ApkShellext is up to date (Current: " + currentVer.ToString() + ", GitHub: " + finalTag + ").", EventLogEntryType.Information);
+                    return false;
+                }
+
+                LogEvent("New update detected: " + finalTag + " (Current: " + currentVer.ToString() + ")", EventLogEntryType.Information);
+
+                // Format clean 3-part version tag (e.g. v1.2.1)
+                string versionTag = string.Format("v{0}.{1}.{2}", latestVer.Major >= 0 ? latestVer.Major : 1, latestVer.Minor >= 0 ? latestVer.Minor : 0, latestVer.Build >= 0 ? latestVer.Build : 0);
+
+                // Determine System Drive target folder (e.g., C:\ApkShellext_v1.2.1)
+                string sysDrive = Path.GetPathRoot(Environment.SystemDirectory);
+                string targetVersionDir = Path.Combine(sysDrive, string.Format("ApkShellext_{0}", versionTag));
+
+                // Direct download link for release zip asset
+                string downloadUrl = string.Format("https://github.com/alisakkaf/ApkShellext/releases/download/{0}/ApkShellext-{0}.zip", versionTag);
+                string tempZipPath = Path.Combine(Path.GetTempPath(), string.Format("ApkShellext-{0}.zip", versionTag));
+
+                using (WebClient wc = new WebClient()) {
+                    wc.Headers.Add("User-Agent", "ApkShellextService-Downloader");
+                    wc.DownloadFile(downloadUrl, tempZipPath);
+                }
+
+                if (!File.Exists(tempZipPath)) {
+                    LogEvent("Failed to download update package from " + downloadUrl, EventLogEntryType.Error);
+                    return false;
+                }
+
+                // Extract package into new target version folder (e.g., C:\ApkShellext_v1.2.1)
+                if (Directory.Exists(targetVersionDir)) {
+                    try { Directory.Delete(targetVersionDir, true); } catch { }
+                }
+                Directory.CreateDirectory(targetVersionDir);
+                ZipFile.ExtractToDirectory(tempZipPath, targetVersionDir);
+
+                // Verify extraction correctness (must contain install.bat and ApkShellext.dll)
+                string installBat = Path.Combine(targetVersionDir, "install.bat");
+                string dllPath = Path.Combine(targetVersionDir, "ApkShellext.dll");
+                if (!File.Exists(installBat) || !File.Exists(dllPath)) {
+                    LogEvent("Update extraction verification failed in " + targetVersionDir, EventLogEntryType.Error);
+                    return false;
+                }
+
+                // Clean up temp ZIP file
+                try { File.Delete(tempZipPath); } catch { }
+
+                LogEvent("New update extracted successfully to: " + targetVersionDir, EventLogEntryType.Information);
+
+                // Prompt user and open the new update folder directly in Explorer
+                string msgText = string.Format(
+                    "A new update ({0}) for ApkShellext has been downloaded and extracted to:\n{1}\n\n" +
+                    "To complete the update:\n" +
+                    "1. If a previous version is installed, run uninstall.bat in its folder.\n" +
+                    "2. Right-click install.bat in the new folder and select 'Run as Administrator'.\n\n" +
+                    "Would you like to open the update folder now?",
+                    versionTag, targetVersionDir);
+
+                try {
+                    int result = MessageBox(IntPtr.Zero, msgText, "ApkShellext Auto-Updater (" + versionTag + ")", MB_YESNO | MB_ICONQUESTION | MB_SERVICE_NOTIFICATION);
+                    if (result == IDYES) {
+                        Process.Start("explorer.exe", targetVersionDir);
+                    }
+                } catch {
+                    Process.Start("explorer.exe", targetVersionDir);
+                }
+
                 return true;
+            } catch (Exception ex) {
+                LogEvent("Error performing update check or extraction: " + ex.Message, EventLogEntryType.Error);
+                return false;
             }
-
-            return false;
         }
 
         private bool IsNewerVersion(Version latest, Version current) {
@@ -245,98 +266,6 @@ namespace ApkShellext {
             if (latestBuild > currentBuild) return true;
 
             return false;
-        }
-
-        private void ExecuteSilentInstall(string extractDir, string targetDir) {
-            try {
-                LogEvent("Starting update installation to " + targetDir, EventLogEntryType.Information);
-
-                // 1. Detect current install directory if registered
-                string currentInstalledDir = "";
-                try {
-                    using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"CLSID\{6F1D5E99-4A9B-4D4F-8C8B-8D75A0B1A7DF}\InprocServer32")) {
-                        if (key != null) {
-                            string codebase = key.GetValue("CodeBase") as string;
-                            if (!string.IsNullOrEmpty(codebase)) {
-                                Uri uri = new Uri(codebase);
-                                currentInstalledDir = Path.GetDirectoryName(uri.LocalPath);
-                            }
-                        }
-                    }
-                } catch { }
-
-                // 2. Run uninstall.bat elevated on old directory if present
-                if (!string.IsNullOrEmpty(currentInstalledDir) && Directory.Exists(currentInstalledDir)) {
-                    string oldUninstallBat = Path.Combine(currentInstalledDir, "uninstall.bat");
-                    if (File.Exists(oldUninstallBat)) {
-                        RunCommandElevated(oldUninstallBat);
-                    }
-                }
-
-                // 3. Create target directory (%SystemDrive%\ApkShellext_ByAliSakkaf)
-                if (!Directory.Exists(targetDir)) {
-                    Directory.CreateDirectory(targetDir);
-                }
-
-                // 4. Copy files recursively with lock safety fallback
-                foreach (string dirPath in Directory.GetDirectories(extractDir, "*", SearchOption.AllDirectories)) {
-                    Directory.CreateDirectory(dirPath.Replace(extractDir, targetDir));
-                }
-                foreach (string filePath in Directory.GetFiles(extractDir, "*.*", SearchOption.AllDirectories)) {
-                    string destPath = filePath.Replace(extractDir, targetDir);
-                    try {
-                        File.Copy(filePath, destPath, true);
-                    } catch {
-                        try {
-                            if (File.Exists(destPath)) {
-                                string oldFile = destPath + ".old_" + DateTime.Now.Ticks;
-                                File.Move(destPath, oldFile);
-                            }
-                            File.Copy(filePath, destPath, true);
-                        } catch { }
-                    }
-                }
-
-                // 5. Run install.bat elevated in the new target directory
-                string newInstallBat = Path.Combine(targetDir, "install.bat");
-                if (File.Exists(newInstallBat)) {
-                    RunCommandElevated(newInstallBat);
-                }
-
-                LogEvent("Successfully updated ApkShellext to target directory: " + targetDir, EventLogEntryType.Information);
-            } catch (Exception ex) {
-                LogEvent("Error executing silent update: " + ex.Message, EventLogEntryType.Error);
-            } finally {
-                EnsureExplorerRunning();
-            }
-        }
-
-        private void RunCommandElevated(string batFilePath) {
-            try {
-                ProcessStartInfo psi = new ProcessStartInfo();
-                psi.FileName = batFilePath;
-                psi.WorkingDirectory = Path.GetDirectoryName(batFilePath);
-                psi.UseShellExecute = true;
-                psi.Verb = "runas";
-                using (Process proc = Process.Start(psi)) {
-                    if (proc != null) {
-                        proc.WaitForExit();
-                    }
-                }
-            } catch (Exception ex) {
-                LogEvent("Error running elevated bat script " + batFilePath + ": " + ex.Message, EventLogEntryType.Warning);
-            }
-        }
-
-        private void EnsureExplorerRunning() {
-            try {
-                Process[] procs = Process.GetProcessesByName("explorer");
-                if (procs == null || procs.Length == 0) {
-                    ProcessStartInfo psi = new ProcessStartInfo("explorer.exe");
-                    psi.UseShellExecute = true;
-                    Process.Start(psi);
-                }
-            } catch { }
         }
 
         private void LogEvent(string msg, EventLogEntryType type) {
