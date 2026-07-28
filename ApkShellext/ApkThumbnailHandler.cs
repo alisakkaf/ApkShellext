@@ -12,6 +12,7 @@ using System.IO;
 using ApkShellext.Properties;
 using ApkQuickReader;
 using System.Configuration;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace ApkShellext {
     [Guid("7E5E98B4-9F8C-476A-B6A2-1C3D6E9A8C5B")]
@@ -19,6 +20,8 @@ namespace ApkShellext {
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apks")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apkm")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".ipa")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appxbundle")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appx")]
@@ -31,34 +34,68 @@ namespace ApkShellext {
             try {
                 int outputSize = (int)width;
                 Bitmap rawIcon = null;
+                AppPackageReader.AppType appType = AppPackageReader.AppType.AndroidApp;
 
                 if (SelectedItemStream != null && SelectedItemStream.CanSeek) {
-                    SelectedItemStream.Position = 0;
-                    AppPackageReader reader = null;
+                    string detectedType = null;
                     try {
-                        reader = new ApkReader(SelectedItemStream);
-                    } catch {
-                        try {
-                            SelectedItemStream.Position = 0;
-                            reader = new XapkReader(SelectedItemStream);
-                        } catch {
-                            try {
-                                SelectedItemStream.Position = 0;
-                                reader = new IpaReader(SelectedItemStream);
-                            } catch {
-                                try {
-                                    SelectedItemStream.Position = 0;
-                                    reader = new AppxBundleReader(SelectedItemStream);
-                                } catch {
-                                    SelectedItemStream.Position = 0;
-                                    reader = new AppxReader(SelectedItemStream);
+                        SelectedItemStream.Position = 0;
+                        using (ZipFile zipCheck = new ZipFile(SelectedItemStream)) {
+                            zipCheck.IsStreamOwner = false; // CRITICAL: Do NOT close SelectedItemStream when zipCheck is disposed!
+                            foreach (ZipEntry entry in zipCheck) {
+                                string nameLower = entry.Name.ToLower();
+                                if (nameLower == "androidmanifest.xml") {
+                                    detectedType = "apk";
+                                    break;
+                                } else if (nameLower == "appxmanifest.xml") {
+                                    detectedType = "appx";
+                                    break;
+                                } else if (nameLower == "appxmetadata/appxbundlemanifest.xml") {
+                                    detectedType = "appxbundle";
+                                    break;
+                                } else if (nameLower.EndsWith(".apk") || nameLower == "manifest.json" || nameLower == "info.json") {
+                                    if (detectedType == null) detectedType = "xapk";
+                                } else if (nameLower.Contains("info.plist")) {
+                                    if (detectedType == null) detectedType = "ipa";
                                 }
                             }
                         }
+                    } catch { }
+
+                    AppPackageReader reader = null;
+
+                    if (detectedType == "apk") {
+                        try { SelectedItemStream.Position = 0; reader = new ApkReader(SelectedItemStream); } catch { }
+                    } else if (detectedType == "xapk") {
+                        try { SelectedItemStream.Position = 0; reader = new XapkReader(SelectedItemStream); } catch { }
+                    } else if (detectedType == "ipa") {
+                        try { SelectedItemStream.Position = 0; reader = new IpaReader(SelectedItemStream); } catch { }
+                    } else if (detectedType == "appxbundle") {
+                        try { SelectedItemStream.Position = 0; reader = new AppxBundleReader(SelectedItemStream); } catch { }
+                    } else if (detectedType == "appx") {
+                        try { SelectedItemStream.Position = 0; reader = new AppxReader(SelectedItemStream); } catch { }
                     }
 
-                    using (reader) {
-                        if (reader != null) {
+                    // Fallback trial chain if detection returned null
+                    if (reader == null) {
+                        try { SelectedItemStream.Position = 0; reader = new ApkReader(SelectedItemStream); } catch { }
+                    }
+                    if (reader == null) {
+                        try { SelectedItemStream.Position = 0; reader = new XapkReader(SelectedItemStream); } catch { }
+                    }
+                    if (reader == null) {
+                        try { SelectedItemStream.Position = 0; reader = new IpaReader(SelectedItemStream); } catch { }
+                    }
+                    if (reader == null) {
+                        try { SelectedItemStream.Position = 0; reader = new AppxBundleReader(SelectedItemStream); } catch { }
+                    }
+                    if (reader == null) {
+                        try { SelectedItemStream.Position = 0; reader = new AppxReader(SelectedItemStream); } catch { }
+                    }
+
+                    if (reader != null) {
+                        using (reader) {
+                            appType = reader.Type;
                             rawIcon = reader.Icon;
                         }
                     }
@@ -71,9 +108,9 @@ namespace ApkShellext {
                     outputSize = rawIcon.Height;
 
                 Bitmap finalBitmap = null;
-                if (Utility.GetSetting("ShowOverlayIcon") == "True") {
+                if (Utility.GetSetting("ShowOverLayIcon") == "True" || Utility.GetSetting("ShowOverlayIcon") == "True") {
                     finalBitmap = Utility.CombineBitmap(rawIcon,
-                           Utility.AppTypeIcon(AppPackageReader.AppType.AndroidApp),
+                           Utility.AppTypeIcon(appType),
                            new Rectangle(0, 0, outputSize, outputSize),
                            new Rectangle(0, outputSize / 2, outputSize / 2, outputSize / 2),
                            new Size(outputSize, outputSize));
@@ -95,7 +132,7 @@ namespace ApkShellext {
         public static void postDoRegister(Type type, RegistrationType registrationType) {
             Console.WriteLine("Registering " + type.FullName );
 
-            string[] exts = new string[] { ".apk", ".xapk", ".ipa", ".appx", ".appxbundle" };
+            string[] exts = new string[] { ".apk", ".xapk", ".apks", ".apkm", ".ipa", ".appx", ".appxbundle" };
             foreach (string ext in exts) {
                 try {
                     using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"\CLSID\" + ext)) {
