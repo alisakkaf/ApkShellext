@@ -18,6 +18,8 @@ namespace ApkShellext {
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apks")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apkm")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".ipa")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appxbundle")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appx")]
@@ -34,7 +36,10 @@ namespace ApkShellext {
             try {
                 Utility.Localize();
                 string TipPattern = Utility.GetSetting("ToolTipPattern", NonLocalizeResources.strInfoTipDefault);
-                bool isapk = SelectedItemPath.EndsWith(".apk");
+                bool isapk = SelectedItemPath.EndsWith(".apk", StringComparison.OrdinalIgnoreCase) || 
+                             SelectedItemPath.EndsWith(".xapk", StringComparison.OrdinalIgnoreCase) || 
+                             SelectedItemPath.EndsWith(".apks", StringComparison.OrdinalIgnoreCase) || 
+                             SelectedItemPath.EndsWith(".apkm", StringComparison.OrdinalIgnoreCase);
                 bool isipa = SelectedItemPath.EndsWith(".ipa");
                 
                 var cached = PackageCache.Get(SelectedItemPath);
