@@ -1,0 +1,18 @@
+ApkShellext Diagnostic Log - Mon 07/27/2026 21:20:10.91 
+====================================================== 
+OS Architecture: Intel64 Family 6 Model 183 Stepping 1, GenuineIntel 
+System Directory: C:\WINDOWS 
+.NET Framework 32-bit: INSTALLED 
+.NET Framework 64-bit: INSTALLED 
+ERROR: The system was unable to find the specified registry key or value.
+ERROR: The system was unable to find the specified registry key or value.
+Microsoft .NET Framework Assembly Registration Utility version 4.8.9222.0
+for Microsoft .NET Framework version 4.8.9222.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+RegAsm : error RA0000 : Unable to locate input assembly 'C:\Users\alisa\Desktop\apkshellext-ApkShellext2\ApkiCon\apkshellext\ApkShellext\Resources\ApkShellext.dll' or one of its dependencies.
+Microsoft .NET Framework Assembly Registration Utility version 4.8.9222.0
+for Microsoft .NET Framework version 4.8.9222.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+RegAsm : error RA0000 : Unable to locate input assembly 'C:\Users\alisa\Desktop\apkshellext-ApkShellext2\ApkiCon\apkshellext\ApkShellext\Resources\ApkShellext.dll' or one of its dependencies.
