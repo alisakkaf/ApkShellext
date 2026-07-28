@@ -24,6 +24,8 @@ namespace ApkShellext {
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apks")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apkm")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".ipa")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appxbundle")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appx")]
@@ -36,25 +38,12 @@ namespace ApkShellext {
                     var cached = PackageCache.Get(SelectedItemPath);
 
                     if (cached != null) {
-                        if (cached.Type == AppPackageReader.AppType.iOSApp && Utility.GetSetting("ShowIpaIcon", "True") != "True") {
-                            m_icon = Utility.AppTypeIcon(cached.Type);
-                        } else if ((cached.Type == AppPackageReader.AppType.WindowsPhoneApp || cached.Type == AppPackageReader.AppType.WindowsPhoneAppBundle) && Utility.GetSetting("ShowAppxIcon", "False") != "True") {
-                            m_icon = Utility.AppTypeIcon(cached.Type);
-                        } else {
-                            m_icon = cached.GetIconClone(new Size((int)iconSize, (int)iconSize));
-                        }
+                        m_icon = cached.GetIconClone(new Size((int)iconSize, (int)iconSize));
                     } else {
                         using (AppPackageReader reader = AppPackageReader.Read(SelectedItemPath)) {
                             if (reader != null) {
                                 PackageCache.Put(SelectedItemPath, reader);
-
-                                if (reader.Type == AppPackageReader.AppType.iOSApp && Utility.GetSetting("ShowIpaIcon", "True") != "True") {
-                                    m_icon = Utility.AppTypeIcon(reader.Type);
-                                } else if ((reader.Type == AppPackageReader.AppType.WindowsPhoneApp || reader.Type == AppPackageReader.AppType.WindowsPhoneAppBundle) && Utility.GetSetting("ShowAppxIcon", "False") != "True") {
-                                    m_icon = Utility.AppTypeIcon(reader.Type);
-                                } else {
-                                    m_icon = reader.getIcon(new Size((int)iconSize, (int)iconSize));
-                                }
+                                m_icon = reader.getIcon(new Size((int)iconSize, (int)iconSize));
                             }
                         }
                     }
