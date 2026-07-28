@@ -7,7 +7,7 @@ using ApkQuickReader;
 namespace ApkShellext
 {
     /// <summary>
-    /// XapkReader extracts the base APK from a .xapk ZIP package (via file path or stream)
+    /// XapkReader extracts the base APK from a .xapk, .apks, or .apkm ZIP package
     /// and delegates all APK parsing to the base ApkReader.
     /// </summary>
     public class XapkReader : ApkReader
@@ -25,49 +25,67 @@ namespace ApkShellext
         private static Stream GetXapkStream(Stream xapkStream)
         {
             ZipFile zFile = null;
+            string tempFilePath = null;
             try
             {
                 zFile = new ZipFile(xapkStream);
-                ZipEntry baseApkEntry = null;
+                zFile.IsStreamOwner = false;
 
-                // Search for the main APK file (normally base.apk)
+                ZipEntry bestApkEntry = null;
+                int highestScore = -1;
+
+                // Search and score all APK entries inside the bundle (.xapk, .apks, .apkm)
                 foreach (ZipEntry entry in zFile)
                 {
-                    if (entry.Name.EndsWith(".apk", StringComparison.OrdinalIgnoreCase))
+                    if (!entry.IsFile) continue;
+                    string entryName = entry.Name.Replace('\\', '/');
+                    string fileName = Path.GetFileName(entryName).ToLower();
+
+                    if (fileName.EndsWith(".apk", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Prefer base.apk, otherwise take the first .apk found
-                        if (entry.Name.Equals("base.apk", StringComparison.OrdinalIgnoreCase))
+                        int score = 0;
+                        if (fileName == "base.apk") score = 1000;
+                        else if (entryName.EndsWith("/base.apk", StringComparison.OrdinalIgnoreCase)) score = 950;
+                        else if (fileName == "base-master.apk") score = 900;
+                        else if (fileName == "standalone.apk") score = 850;
+                        else if (fileName == "main.apk") score = 800;
+                        else if (!fileName.StartsWith("split_") && !fileName.Contains("config.")) score = 500;
+                        else score = 100;
+
+                        if (score > highestScore)
                         {
-                            baseApkEntry = entry;
-                            break;
-                        }
-                        if (baseApkEntry == null)
-                        {
-                            baseApkEntry = entry;
+                            highestScore = score;
+                            bestApkEntry = entry;
                         }
                     }
                 }
 
-                if (baseApkEntry == null)
+                if (bestApkEntry == null)
                 {
-                    throw new FileNotFoundException("Could not find any base APK inside XAPK package.");
+                    throw new FileNotFoundException("Could not find any base APK inside package container.");
                 }
 
-                // Copy the base APK into a MemoryStream to prevent file lock issues
-                Stream apkStream = zFile.GetInputStream(baseApkEntry);
-                MemoryStream ms = new MemoryStream();
-                apkStream.CopyTo(ms);
-                ms.Position = 0;
+                // Extract base APK into a temp file to avoid huge memory allocations for 300MB+ APKs
+                tempFilePath = Path.Combine(Path.GetTempPath(), "ApkShellext_" + Guid.NewGuid().ToString("N") + ".apk");
+                using (Stream apkStream = zFile.GetInputStream(bestApkEntry))
+                using (FileStream tempFs = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    apkStream.CopyTo(tempFs);
+                }
 
-                // Return our custom wrapper stream that owns the ZipFile and MemoryStream.
-                // When this stream is disposed, it will dispose both the MemoryStream and the ZipFile.
-                return new ReleaseZipStream(ms, zFile);
+                FileStream streamToRead = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+                return new ReleaseZipStream(streamToRead, zFile, tempFilePath);
             }
             catch
             {
+                if (!string.IsNullOrEmpty(tempFilePath) && File.Exists(tempFilePath))
+                {
+                    try { File.Delete(tempFilePath); } catch { }
+                }
                 if (zFile != null)
                 {
-                    try { zFile.Close(); } catch {}
+                    try { zFile.Close(); } catch { }
                 }
                 throw;
             }
@@ -75,18 +93,20 @@ namespace ApkShellext
     }
 
     /// <summary>
-    /// Custom Stream wrapper that automatically closes and disposes the parent ZipFile 
-    /// when the inner APK stream is disposed.
+    /// Custom Stream wrapper that automatically disposes the parent ZipFile and deletes 
+    /// the temporary APK file when the inner APK stream is disposed.
     /// </summary>
     public class ReleaseZipStream : Stream
     {
         private Stream innerStream;
         private ZipFile zipFile;
+        private string tempFilePath;
 
-        public ReleaseZipStream(Stream innerStream, ZipFile zipFile)
+        public ReleaseZipStream(Stream innerStream, ZipFile zipFile, string tempFilePath = null)
         {
             this.innerStream = innerStream;
             this.zipFile = zipFile;
+            this.tempFilePath = tempFilePath;
         }
 
         public override bool CanRead => innerStream != null && innerStream.CanRead;
@@ -111,13 +131,17 @@ namespace ApkShellext
             {
                 if (innerStream != null)
                 {
-                    innerStream.Dispose();
+                    try { innerStream.Dispose(); } catch { }
                     innerStream = null;
                 }
                 if (zipFile != null)
                 {
-                    try { zipFile.Close(); } catch {}
+                    try { zipFile.Close(); } catch { }
                     zipFile = null;
+                }
+                if (!string.IsNullOrEmpty(tempFilePath) && File.Exists(tempFilePath))
+                {
+                    try { File.Delete(tempFilePath); } catch { }
                 }
             }
             base.Dispose(disposing);
