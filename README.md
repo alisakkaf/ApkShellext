@@ -24,10 +24,12 @@
   <img src="https://raw.githubusercontent.com/alisakkaf/ApkShellext/main/Featured_Image.jpg" alt="Featured Image" width="600" />
 </p>
 
-**ApkShellext** elevates your Windows desktop experience by integrating native support for mobile app packages. It eliminates default blank icons by dynamically decoding binary manifests and resource tables in real-time, providing high-resolution, pixel-perfect icon previews and structured hover tooltips.
+**ApkShellext** elevates your Windows desktop experience by integrating native support for mobile and desktop app packages. It eliminates default blank icons by dynamically decoding binary manifests and resource tables in real-time, providing high-resolution, pixel-perfect icon previews and structured hover tooltips.
 
-Whether you are an Android developer, iOS designer, or power user managing localized app backups, **ApkShellext** delivers high-performance metadata extraction and shell enhancements with zero system overhead. It supports:
+Whether you are an Android developer, iOS designer, or power user managing localized app backups, **ApkShellext** delivers high-performance metadata extraction and shell enhancements with zero system overhead. It supports 7 app package formats:
 * 🤖 **Android Packages (`.apk` & `.xapk`)**
+* ⚡ **Android Split App Bundles (`.apks`)**
+* 🛒 **APKMirror Bundles (`.apkm`)**
 * 🍎 **iOS App Packages (`.ipa`)**
 * 💻 **Windows App Packages (`.appx` & `.appxbundle`)**
 
@@ -99,9 +101,15 @@ Unlike basic shell extensions that rely on external tools, **ApkShellext** featu
 * **arsc Resource Resolver:** Parses the binary `resources.arsc` table to resolve string resources (e.g., resolving `@string/app_name` to its localized equivalent) and locate drawable asset paths.
 * **Adaptive Icon Support:** Decodes and renders adaptive icons, handling raster WebP/PNG layers and parsing vector XML drawable files.
 
-### Android Composite Packages (`.xapk`)
-* **In-Memory Base APK Extraction:** Features an `XapkReader` engine extending `ApkReader` to dynamically locate and parse `base.apk` from `.xapk` ZIP containers in memory without extracting temporary files to disk.
-* **Full Shell Integration:** Direct COM registration for `.xapk` extension across Icon, Thumbnail, InfoTip, and ContextMenu handlers.
+### Android Packages (`.apk`)
+* **Binary XML Parser:** Decodes the compressed binary `AndroidManifest.xml` format directly to extract permissions, package name, SDK requirements, and active component mappings.
+* **arsc Resource Resolver:** Parses the binary `resources.arsc` table to resolve string resources (e.g., resolving `@string/app_name` to its localized equivalent) and locate drawable asset paths.
+* **Adaptive Icon Support:** Decodes and renders adaptive icons, handling raster WebP/PNG layers and parsing vector XML drawable files.
+
+### Android Composite Packages & App Bundles (`.xapk`, `.apks`, `.apkm`)
+* **Zero-RAM Temp File Engine:** Features an upgraded `XapkReader` engine that handles split app bundles (`.xapk`, `.apks`, `.apkm`) of any file size (including 300MB+ large packages like Microsoft Office) with zero RAM overhead using on-demand temporary file streaming (`FileOptions.DeleteOnClose`).
+* **Smart Base APK Scoring:** Implements an automated scoring algorithm that prioritizes main application binaries (`base.apk`, `base-master.apk`, `standalone.apk`, `main.apk`) over configuration splits (`split_config.*.apk`), guaranteeing 100% accurate icon and metadata resolution.
+* **Full Shell & ADB Integration:** Native COM registration across Icon, Thumbnail, InfoTip, ContextMenu, and ADB installation handlers for `.xapk`, `.apks`, and `.apkm` formats.
 
 ### iOS App Packages (`.ipa`)
 * **bplist Decoder:** Parses binary property lists (`Info.plist`) to retrieve bundle identifiers, display names, and build versions.
@@ -149,8 +157,8 @@ Unlike basic shell extensions that rely on external tools, **ApkShellext** featu
 * Dynamically detects system drive (`%SystemDrive%`, e.g., `C:\ApkShellext_ByAliSakkaf`) for clean installation.
 * Downloads release ZIP packages, prompts user notification via native Windows API `MessageBox` with `MB_SERVICE_NOTIFICATION`, uninstalls old binaries, copies updated assemblies, unblocks files, and restarts `explorer.exe` smoothly.
 
-### 8. One-Click ADB Application Installer (`AdbInstallForm`)
-* Right-click any `.apk` or `.xapk` file and select **Install on Device (ADB)** / **تثبيت على الجهاز (ADB)**.
+### 8. Universal One-Click ADB Application Installer (`AdbInstallForm`)
+* Right-click any `.apk`, `.xapk`, `.apks`, or `.apkm` file and select **Install on Device (ADB)** / **تثبيت على الجهاز (ADB)**.
 * Features real-time device connection status checks, USB debugging authorization alerts, automatic split-architecture filtering (picking matching ABIs like `arm64-v8a`), and a 3-stage fallback installer ensuring 100% success on modern 64-bit phones (Galaxy S24, Pixel 7/8/9, Android 14/15) and emulators.
 * Interactive task cancellation kills stuck ADB processes instantly via `taskkill /F /IM adb.exe`.
 
@@ -171,6 +179,17 @@ Unlike basic shell extensions that rely on external tools, **ApkShellext** featu
 * Executable auto-updater triggers native Windows `Verb = "runas"` UAC elevation prompts for seamless installation without privilege errors.
 * Guaranteed Explorer restart protection in `finally` execution blocks prevents Explorer desktop freezes.
 * Implemented smart retry policy (initial 10s check, 5 min retry on network fail, then 3x 15 min retries) for offline network environments.
+
+### 13. Zero-RAM Temp File Engine for Large Packages (v1.2.2)
+* **The Problem:** In earlier versions, large package bundles (300MB+ like Microsoft Office `.apks`) failed to load or threw `OutOfMemoryException` when buffered in RAM `MemoryStream`.
+* **The Fix:** Transitioned `XapkReader` to use temporary file streaming (`FileOptions.DeleteOnClose`). Packages of any size (up to several gigabytes) are processed in fractions of a second with zero RAM overhead.
+
+### 14. Non-Closing ZIP Stream Inspection (`IsStreamOwner = false`)
+* **The Problem:** Disposing temporary `ZipFile` inspection instances was closing the underlying Windows COM stream (`SelectedItemStream`), causing subsequent thumbnail requests to fail with `ObjectDisposedException`.
+* **The Fix:** Configured `zipCheck.IsStreamOwner = false;` across all handlers to maintain persistent, seekable stream handles for Windows Explorer.
+
+### 15. Native CMD Lite Script Suite (`_Lite.bat`)
+* Introduced pure CMD installer and diagnostic scripts (`install_Lite.bat`, `uninstall_Lite.bat`, `debug_Lite.bat`, `restart_explorer_Lite.bat`) for environment configurations where PowerShell execution policies or color codes are restricted.
 
 ---
 
