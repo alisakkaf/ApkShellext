@@ -26,6 +26,32 @@ namespace ApkShellext {
         }
 
         static void Main(string[] args) {
+            if (args != null && args.Length > 0) {
+                string firstArg = args[0];
+                if (firstArg.Equals("/install", StringComparison.OrdinalIgnoreCase)) {
+                    string packagePath = args.Length > 1 ? args[1] : "";
+                    if (!string.IsNullOrEmpty(packagePath) && File.Exists(packagePath)) {
+                        ShowAdbInstallDialog(packagePath);
+                        return;
+                    }
+                }
+                if (firstArg.Equals("/preferences", StringComparison.OrdinalIgnoreCase) ||
+                    firstArg.Equals("/settings", StringComparison.OrdinalIgnoreCase)) {
+                    ShowPreferencesDialog();
+                    return;
+                }
+                if (File.Exists(firstArg) && (firstArg.EndsWith(".apk", StringComparison.OrdinalIgnoreCase) ||
+                                             firstArg.EndsWith(".xapk", StringComparison.OrdinalIgnoreCase) ||
+                                             firstArg.EndsWith(".apks", StringComparison.OrdinalIgnoreCase) ||
+                                             firstArg.EndsWith(".apkm", StringComparison.OrdinalIgnoreCase) ||
+                                             firstArg.EndsWith(".ipa", StringComparison.OrdinalIgnoreCase) ||
+                                             firstArg.EndsWith(".appx", StringComparison.OrdinalIgnoreCase) ||
+                                             firstArg.EndsWith(".appxbundle", StringComparison.OrdinalIgnoreCase))) {
+                    ShowAdbInstallDialog(firstArg);
+                    return;
+                }
+            }
+
             bool interactive = Array.Exists(args, arg => arg.Equals("/interactive", StringComparison.OrdinalIgnoreCase));
             if (interactive || Environment.UserInteractive) {
                 try {
@@ -35,6 +61,46 @@ namespace ApkShellext {
                 } catch { }
             } else {
                 ServiceBase.Run(new apkShellextService());
+            }
+        }
+
+        private static void ShowAdbInstallDialog(string packagePath) {
+            try {
+                string dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApkShellext.dll");
+                if (File.Exists(dllPath)) {
+                    Assembly asm = Assembly.LoadFrom(dllPath);
+                    Type formType = asm.GetType("ApkShellext.AdbInstallForm");
+                    if (formType != null) {
+                        object formInst = Activator.CreateInstance(formType, new object[] { packagePath });
+                        MethodInfo showDialogMethod = formType.GetMethod("ShowDialog", new Type[0]);
+                        if (showDialogMethod != null) {
+                            showDialogMethod.Invoke(formInst, null);
+                            return;
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                System.Windows.Forms.MessageBox.Show("Failed to launch ADB Installer: " + ex.Message, "ApkShellext", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+        }
+
+        private static void ShowPreferencesDialog() {
+            try {
+                string dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApkShellext.dll");
+                if (File.Exists(dllPath)) {
+                    Assembly asm = Assembly.LoadFrom(dllPath);
+                    Type formType = asm.GetType("ApkShellext.Preferences");
+                    if (formType != null) {
+                        object formInst = Activator.CreateInstance(formType);
+                        MethodInfo showDialogMethod = formType.GetMethod("ShowDialog", new Type[0]);
+                        if (showDialogMethod != null) {
+                            showDialogMethod.Invoke(formInst, null);
+                            return;
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                System.Windows.Forms.MessageBox.Show("Failed to launch Preferences: " + ex.Message, "ApkShellext", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }
         }
 
@@ -221,7 +287,6 @@ namespace ApkShellext {
 
                 LogEvent("New update extracted successfully to: " + targetVersionDir, EventLogEntryType.Information);
 
-                // Prompt user and open the new update folder directly in Explorer
                 string msgText = string.Format(
                     "A new update ({0}) for ApkShellext has been downloaded and extracted to:\n{1}\n\n" +
                     "To complete the update:\n" +
@@ -230,13 +295,36 @@ namespace ApkShellext {
                     "Would you like to open the update folder now?",
                     versionTag, targetVersionDir);
 
+                // Prompt user using native WinForms dialog with app icon and taskbar icon
+                bool shouldOpenFolder = false;
                 try {
-                    int result = MessageBox(IntPtr.Zero, msgText, "ApkShellext Auto-Updater (" + versionTag + ")", MB_YESNO | MB_ICONQUESTION | MB_SERVICE_NOTIFICATION);
-                    if (result == IDYES) {
-                        Process.Start("explorer.exe", targetVersionDir);
+                    using (AutoUpdateForm form = new AutoUpdateForm(versionTag, targetVersionDir)) {
+                        if (form.ShowDialog() == System.Windows.Forms.DialogResult.Yes) {
+                            shouldOpenFolder = true;
+                        }
                     }
                 } catch {
-                    Process.Start("explorer.exe", targetVersionDir);
+                    try {
+                        int result = MessageBox(IntPtr.Zero, msgText, "ApkShellext Auto-Updater (" + versionTag + ")", MB_YESNO | MB_ICONQUESTION | MB_SERVICE_NOTIFICATION);
+                        if (result == IDYES) {
+                            shouldOpenFolder = true;
+                        }
+                    } catch {
+                        shouldOpenFolder = true;
+                    }
+                }
+
+                if (shouldOpenFolder) {
+                    try {
+                        ProcessStartInfo psi = new ProcessStartInfo();
+                        psi.FileName = targetVersionDir;
+                        psi.UseShellExecute = true;
+                        Process.Start(psi);
+                    } catch {
+                        try {
+                            Process.Start("explorer.exe", "\"" + targetVersionDir + "\"");
+                        } catch { }
+                    }
                 }
 
                 return true;
@@ -324,7 +412,6 @@ namespace ApkShellext {
         {
             ThreadPool.QueueUserWorkItem((o) =>
             {
-                Console.WriteLine("Webserver running...");
                 try
                 {
                     while (_listener.IsListening)
@@ -368,6 +455,80 @@ namespace ApkShellext {
         {
             _listener.Stop();
             _listener.Close();
+        }
+    }
+
+    public class AutoUpdateForm : System.Windows.Forms.Form {
+        public AutoUpdateForm(string versionTag, string targetDir) {
+            this.Text = "ApkShellext Auto-Updater (" + versionTag + ")";
+            this.Size = new System.Drawing.Size(560, 310);
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.ShowInTaskbar = true;
+            this.BackColor = System.Drawing.Color.White;
+
+            try {
+                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
+            } catch { }
+
+            System.Windows.Forms.PictureBox pbLogo = new System.Windows.Forms.PictureBox {
+                Location = new System.Drawing.Point(24, 24),
+                Size = new System.Drawing.Size(64, 64),
+                SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
+            };
+
+            try {
+                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                pbLogo.Image = System.Drawing.Icon.ExtractAssociatedIcon(exePath).ToBitmap();
+            } catch { }
+
+            System.Windows.Forms.Label lblMsg = new System.Windows.Forms.Label {
+                Location = new System.Drawing.Point(106, 20),
+                Size = new System.Drawing.Size(420, 185),
+                Font = new System.Drawing.Font("Segoe UI", 9.5f, System.Drawing.FontStyle.Regular),
+                ForeColor = System.Drawing.Color.FromArgb(30, 30, 30),
+                Text = string.Format(
+                    "A new update ({0}) for ApkShellext has been downloaded and extracted to:\n{1}\n\n" +
+                    "To complete the update:\n" +
+                    "1. If a previous version is installed, run uninstall.bat in its folder.\n" +
+                    "2. Right-click install.bat in the new folder and select 'Run as Administrator'.\n\n" +
+                    "Would you like to open the update folder now?",
+                    versionTag, targetDir)
+            };
+
+            System.Windows.Forms.Button btnYes = new System.Windows.Forms.Button {
+                Text = "Yes",
+                DialogResult = System.Windows.Forms.DialogResult.Yes,
+                Location = new System.Drawing.Point(315, 220),
+                Size = new System.Drawing.Size(100, 34),
+                Font = new System.Drawing.Font("Segoe UI", 9.5f, System.Drawing.FontStyle.Bold),
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(0, 120, 215),
+                ForeColor = System.Drawing.Color.White
+            };
+            btnYes.FlatAppearance.BorderSize = 0;
+
+            System.Windows.Forms.Button btnNo = new System.Windows.Forms.Button {
+                Text = "No",
+                DialogResult = System.Windows.Forms.DialogResult.No,
+                Location = new System.Drawing.Point(425, 220),
+                Size = new System.Drawing.Size(100, 34),
+                Font = new System.Drawing.Font("Segoe UI", 9.5f, System.Drawing.FontStyle.Regular),
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(235, 238, 242),
+                ForeColor = System.Drawing.Color.FromArgb(50, 50, 50)
+            };
+            btnNo.FlatAppearance.BorderSize = 0;
+
+            this.Controls.Add(pbLogo);
+            this.Controls.Add(lblMsg);
+            this.Controls.Add(btnYes);
+            this.Controls.Add(btnNo);
+            this.AcceptButton = btnYes;
+            this.CancelButton = btnNo;
         }
     }
 }
