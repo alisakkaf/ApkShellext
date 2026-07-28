@@ -157,8 +157,9 @@ Unlike basic shell extensions that rely on external tools, **ApkShellext** featu
 * Dynamically detects system drive (`%SystemDrive%`, e.g., `C:\ApkShellext_ByAliSakkaf`) for clean installation.
 * Downloads release ZIP packages, prompts user notification via native Windows API `MessageBox` with `MB_SERVICE_NOTIFICATION`, uninstalls old binaries, copies updated assemblies, unblocks files, and restarts `explorer.exe` smoothly.
 
-### 8. Universal One-Click ADB Application Installer (`AdbInstallForm`)
-* Right-click any `.apk`, `.xapk`, `.apks`, or `.apkm` file and select **Install on Device (ADB)** / **تثبيت على الجهاز (ADB)**.
+### 8. Universal One-Click & Double-Click ADB Application Installer (`AdbInstallForm`)
+* **Primary Right-Click Menu:** Right-click any `.apk`, `.xapk`, `.apks`, or `.apkm` file and select **Install on Device (ADB)** / **تثبيت على الجهاز (ADB)** directly from the main context menu.
+* **Double-Click Direct Mode:** Allows users to set Double-Click mode during setup (`install.bat`), enabling direct execution and installation of Android packages (`.apk`, `.xapk`, `.apks`, `.apkm`) simply by double-clicking them in Windows Explorer.
 * Features real-time device connection status checks, USB debugging authorization alerts, automatic split-architecture filtering (picking matching ABIs like `arm64-v8a`), and a 3-stage fallback installer ensuring 100% success on modern 64-bit phones (Galaxy S24, Pixel 7/8/9, Android 14/15) and emulators.
 * Interactive task cancellation kills stuck ADB processes instantly via `taskkill /F /IM adb.exe`.
 
@@ -190,6 +191,11 @@ Unlike basic shell extensions that rely on external tools, **ApkShellext** featu
 
 ### 15. Native CMD Lite Script Suite (`_Lite.bat`)
 * Introduced pure CMD installer and diagnostic scripts (`install_Lite.bat`, `uninstall_Lite.bat`, `debug_Lite.bat`, `restart_explorer_Lite.bat`) for environment configurations where PowerShell execution policies or color codes are restricted.
+
+### 16. Configurable Dual Setup Options (Standard vs Double-Click Mode)
+* Interactive installer (`install.bat` / `install_Lite.bat`) lets users toggle between:
+  - **[1] Standard Mode:** Adds "Install on Device (ADB)" directly to the main right-click menu.
+  - **[2] Double-Click Mode:** Configures double-click default association (`HKCR\.apk\shell\open\command`) to trigger `ApkShellextService.exe /install "%1"` instantly.
 
 ---
 
