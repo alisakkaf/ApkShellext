@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/alisakkaf/ApkShellext/main/ApkShellext_icon.png" alt="ApkShellext Logo" alt="ApkShellext Logo" width="150" height="120" />
+  <img src="https://raw.githubusercontent.com/alisakkaf/ApkShellext/main/ApkShellext_icon.png" alt="ApkShellext Logo" alt="ApkShellext Logo" width="180" height="180" />
 </p>
 
 <h1 align="center">ApkShellext</h1>
