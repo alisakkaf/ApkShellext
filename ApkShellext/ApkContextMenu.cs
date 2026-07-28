@@ -30,6 +30,8 @@ namespace ApkShellext {
     [ClassInterface(ClassInterfaceType.None)]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".apk")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".xapk")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apks")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".apkm")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".ipa")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appxbundle")]
     [COMServerAssociation(AssociationType.ClassOfExtension, ".appx")]
@@ -65,7 +67,7 @@ namespace ApkShellext {
             bool hasapk = false, hasipa = false, hasappx = false, hasappxbundle = false;
             foreach (var p in SelectedItemPaths) {
                 string ext = Path.GetExtension(p).ToLower();
-                if (ext == AppPackageReader.extAPK || ext == AppPackageReader.extXAPK)
+                if (ext == AppPackageReader.extAPK || ext == AppPackageReader.extXAPK || ext == AppPackageReader.extAPKS || ext == AppPackageReader.extAPKM)
                     hasapk = true;
                 if (ext == AppPackageReader.extIPA)
                     hasipa = true;
@@ -315,7 +317,10 @@ namespace ApkShellext {
             string suffix = Path.GetExtension(path);
             string newFileName = "";
             string renamePattern = Utility.GetSetting("RenamePattern", NonLocalizeResources.strRenamePatternDefault);
-            bool isapk = SelectedItemPaths.ElementAt(0).EndsWith(".apk") || SelectedItemPaths.ElementAt(0).EndsWith(".xapk");
+            bool isapk = SelectedItemPaths.ElementAt(0).EndsWith(".apk", StringComparison.OrdinalIgnoreCase) || 
+                         SelectedItemPaths.ElementAt(0).EndsWith(".xapk", StringComparison.OrdinalIgnoreCase) ||
+                         SelectedItemPaths.ElementAt(0).EndsWith(".apks", StringComparison.OrdinalIgnoreCase) ||
+                         SelectedItemPaths.ElementAt(0).EndsWith(".apkm", StringComparison.OrdinalIgnoreCase);
             bool isipa = SelectedItemPaths.ElementAt(0).EndsWith(".ipa");
 
             try {
@@ -550,7 +555,7 @@ namespace ApkShellext {
         private void installViaAdb() {
             foreach (var path in SelectedItemPaths) {
                 string ext = Path.GetExtension(path).ToLower();
-                if (ext == AppPackageReader.extAPK || ext == AppPackageReader.extXAPK) {
+                if (ext == AppPackageReader.extAPK || ext == AppPackageReader.extXAPK || ext == AppPackageReader.extAPKS || ext == AppPackageReader.extAPKM) {
                     Thread thread = new Thread(() => {
                         using (AdbInstallForm form = new AdbInstallForm(path)) {
                             Application.Run(form);
