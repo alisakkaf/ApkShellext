@@ -42,30 +42,50 @@ namespace ApkShellext {
             string appxFileName = "";
             zip = new ZipFile(stream);
             ZipEntry en = zip.GetEntry(AppxBundleManifestXml);
-            if (en == null)
-                throw new EntryPointNotFoundException("cannot find " + AppxBundleManifestXml);
 
-            using (XmlReader reader = XmlReader.Create(zip.GetInputStream(en))) {
-                reader.ReadToFollowing(ElemIdentity);
-                reader.MoveToAttribute(AttrName);
+            if (en != null) {
+                try {
+                    using (XmlReader reader = XmlReader.Create(zip.GetInputStream(en))) {
+                        reader.ReadToFollowing(ElemIdentity);
+                        reader.MoveToAttribute(AttrName);
 
-                do {
-                    reader.ReadToFollowing(ElemPackage);
-                    reader.MoveToAttribute(AttrType);
-                } while (reader.Value != ValApplication || reader.EOF);
+                        do {
+                            if (reader.ReadToFollowing(ElemPackage)) {
+                                reader.MoveToAttribute(AttrType);
+                            }
+                        } while (!reader.EOF && reader.Value != ValApplication);
 
-                if (reader.EOF)
-                    throw new Exception("Cannot find application in " + AppxBundleManifestXml);
-
-                reader.MoveToAttribute(AttrFileName);
-                appxFileName = reader.Value;
+                        if (!reader.EOF) {
+                            reader.MoveToAttribute(AttrFileName);
+                            appxFileName = reader.Value;
+                        }
+                    }
+                } catch { }
             }
 
-            en = zip.GetEntry(appxFileName);
+            if (string.IsNullOrEmpty(appxFileName)) {
+                // Fallback: search for any .appx entry in the bundle zip
+                foreach (ZipEntry entry in zip) {
+                    if (entry.Name.EndsWith(".appx", StringComparison.OrdinalIgnoreCase)) {
+                        en = entry;
+                        appxFileName = entry.Name;
+                        break;
+                    }
+                }
+            } else {
+                en = zip.GetEntry(appxFileName);
+            }
+
             if (en == null)
                 throw new EntryPointNotFoundException("cannot find appx " + appxFileName);
 
-            appxReader = new AppxReader(zip.GetInputStream(en));
+            // Copy inner .appx into a seekable MemoryStream so ZipFile inside AppxReader can parse it properly
+            MemoryStream ms = new MemoryStream();
+            using (Stream s = zip.GetInputStream(en)) {
+                s.CopyTo(ms);
+            }
+            ms.Position = 0;
+            appxReader = new AppxReader(ms);
         }
 
         public override AppPackageReader.AppType Type {
