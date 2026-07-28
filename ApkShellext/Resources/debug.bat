@@ -137,7 +137,7 @@ for %%C in (%CLSIDS%) do (
 )
 
 :: Clean legacy extension shellex keys
-set EXTS=.apk .xapk .ipa .appx .appxbundle
+set EXTS=.apk .xapk .apks .apkm .ipa .appx .appxbundle
 for %%E in (%EXTS%) do (
     reg delete "HKCR\%%E\shellex" /f >nul 2>&1
     reg delete "HKCR\SystemFileAssociations\%%E\shellex" /f >nul 2>&1
