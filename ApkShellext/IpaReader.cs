@@ -57,7 +57,7 @@ namespace ApkShellext
             zip = new ZipFile(stream);
             ZipEntry infoPlist = null;
             foreach (ZipEntry en in zip) {
-                Match m = Regex.Match(en.Name, infoPlistPath);
+                Match m = Regex.Match(en.Name, infoPlistPath, RegexOptions.IgnoreCase);
                 if (m.Success) {
                     strAppRoot = m.Groups[1].Value;
                     infoPlist = en;
@@ -66,75 +66,109 @@ namespace ApkShellext
             }
 
             if (infoPlist == null) {
+                // Fallback: look for any Info.plist in zip
+                foreach (ZipEntry en in zip) {
+                    if (en.Name.EndsWith("Info.plist", StringComparison.OrdinalIgnoreCase)) {
+                        infoPlist = en;
+                        int idx = en.Name.LastIndexOf("Info.plist", StringComparison.OrdinalIgnoreCase);
+                        strAppRoot = en.Name.Substring(0, idx);
+                        break;
+                    }
+                }
+            }
+
+            if (infoPlist == null) {
                 throw new EntryPointNotFoundException("cannot find info.plist");
             }
 
-            byte[] infoBytes = new byte[infoPlist.Size];
-            zip.GetInputStream(infoPlist).Read(infoBytes, 0, (int)infoPlist.Size);
+            byte[] infoBytes;
+            using (MemoryStream ms = new MemoryStream()) {
+                using (Stream s = zip.GetInputStream(infoPlist)) {
+                    s.CopyTo(ms);
+                }
+                infoBytes = ms.ToArray();
+            }
 
             infoPlistDic = (Dictionary<string, object>)Plist.readPlist(infoBytes);
         }
 
         public string[] getStrings(Dictionary<string, object> dic, string[] keys) {
+            if (dic == null || keys == null || keys.Length == 0) return new string[] { };
             for (int i = 0; i < keys.Length - 1; i++) {
-                if (dic.ContainsKey(keys[i])) {
+                if (dic.ContainsKey(keys[i]) && dic[keys[i]] is Dictionary<string, object>) {
                     dic = (Dictionary<string, object>)dic[keys[i]];
                 } else {
                     return new string[] { };
-                    //throw new Exception("Given ID is not valid");
                 }
             }
             if (dic.ContainsKey(keys[keys.Length - 1])) {
-                if (dic[keys[keys.Length - 1]] is string) {
-                    return new string[] { dic[keys[keys.Length - 1]] as string };
+                object val = dic[keys[keys.Length - 1]];
+                if (val is string sVal) {
+                    return new string[] { sVal };
                 }
-                if (dic[keys[keys.Length - 1]] is int) {
-                    return new string[] { dic[keys[keys.Length - 1]].ToString() };
-                } else { // is list
-                    object[] arr = ((List<object>)dic[keys[keys.Length - 1]]).ToArray();
-                    return Array.ConvertAll<object, string>(arr, x => x.ToString());
+                if (val is int || val is long) {
+                    return new string[] { val.ToString() };
                 }
-            } else {
-                return new string[] { };
+                if (val is List<object> list) {
+                    return Array.ConvertAll(list.ToArray(), x => x.ToString());
+                }
             }
+            return new string[] { };
         }
 
         public Bitmap getImage(string[] keys) {
             string[] images = getStrings(infoPlistDic, keys);
-            if (images.Count() > 0) {
+            if (images.Length > 0) {
                 return getImage(images[0]);
             }
             return null;
         }
 
         public Bitmap getImage(string name) {
-            string fullname = name;
-            ZipEntry image;
-            if (!name.EndsWith(".png")) {                
-                fullname = name + @"@3x" + ".png";
-                image = zip.GetEntry(strAppRoot + fullname);                
+            if (string.IsNullOrEmpty(name) || zip == null) return null;
+            string root = strAppRoot ?? "";
+            ZipEntry image = null;
+
+            if (!name.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) {                
+                image = zip.GetEntry(root + name + @"@3x.png");                
                 if (image == null) {
-                    fullname = name + @"@2x" + ".png";
-                    image = zip.GetEntry(strAppRoot + fullname);
+                    image = zip.GetEntry(root + name + @"@2x.png");
                 }
                 if (image == null) {
-                    fullname = name + ".png";
-                    image = zip.GetEntry(strAppRoot + fullname);
+                    image = zip.GetEntry(root + name + ".png");
                 }
             } else {
-                image = zip.GetEntry(strAppRoot + name);
+                image = zip.GetEntry(root + name);
+            }
+
+            if (image == null) {
+                // Try case-insensitive lookup
+                string target = (root + name).ToLower();
+                foreach (ZipEntry en in zip) {
+                    if (en.Name.ToLower().EndsWith(target) || en.Name.ToLower().EndsWith(target + ".png")) {
+                        image = en;
+                        break;
+                    }
+                }
             }
 
             if (image == null) {
                 return null;
             }
-            byte[] imageBytes = new byte[image.Size];
-            zip.GetInputStream(image).Read(imageBytes, 0, (int)image.Size);
+
+            byte[] imageBytes;
+            using (MemoryStream ms = new MemoryStream()) {
+                using (Stream s = zip.GetInputStream(image)) {
+                    s.CopyTo(ms);
+                }
+                imageBytes = ms.ToArray();
+            }
+
             try {
                 MemoryStream imageOut = new MemoryStream();
                 PNGDecrusher.Decrush(new MemoryStream(imageBytes), imageOut);
                 return new Bitmap(imageOut);
-            } catch (InvalidDataException) { // image is not crushed
+            } catch {
                 return new Bitmap(new MemoryStream(imageBytes));
             }
         }
@@ -148,13 +182,11 @@ namespace ApkShellext
         public override string AppName {
             get {
                 try {
-                    string[] n = getStrings(infoPlistDic, new string[] {
-                    CFBundleDisplayName});
-                    if (n.Count() == 0) {
-                        n = getStrings(infoPlistDic, new string[] {
-                        FacebookDisplayName });
+                    string[] n = getStrings(infoPlistDic, new string[] { CFBundleDisplayName });
+                    if (n.Length == 0) {
+                        n = getStrings(infoPlistDic, new string[] { FacebookDisplayName });
                     }
-                    return n[0];
+                    return n.Length > 0 ? n[0] : "";
                 } catch {
                     return "";
                 }
@@ -164,8 +196,8 @@ namespace ApkShellext
         public override string Version {
             get {
                 try {
-                    return getStrings(infoPlistDic, new string[] {
-                    CFBundleShortVersionString})[0];
+                    string[] v = getStrings(infoPlistDic, new string[] { CFBundleShortVersionString });
+                    return v.Length > 0 ? v[0] : "";
                 } catch {
                     return "";
                 }
@@ -175,8 +207,8 @@ namespace ApkShellext
         public override string Revision {
             get {
                 try {
-                    return getStrings(infoPlistDic, new string[] {
-                    CFBundleVersion})[0];
+                    string[] r = getStrings(infoPlistDic, new string[] { CFBundleVersion });
+                    return r.Length > 0 ? r[0] : "";
                 } catch {
                     return "";
                 }
@@ -186,39 +218,64 @@ namespace ApkShellext
         public override string PackageName {
             get {
                 try {
-                    return getStrings(infoPlistDic, new string[] {
-                    CFBundleIdentifier})[0];
+                    string[] p = getStrings(infoPlistDic, new string[] { CFBundleIdentifier });
+                    return p.Length > 0 ? p[0] : "";
                 } catch {
                     return "";
                 }
             }
         }
+
         public override Bitmap Icon {
             get {
                 try {
                     Bitmap icon = getImage(new string[] {
                         CFBundleIcons,
                         CFBundlePrimaryIcon,
-                        CFBundleIconFiles }); ;
+                        CFBundleIconFiles });
                     if (icon == null) {
                         icon = getImage(new string[] {
                         CFBundleIcons,
                         CFBundlePrimaryIcon,
-                        CFBundleIconFile }); ;
+                        CFBundleIconFile });
                     }
                     if (icon == null) {
-                        icon = getImage(new string[] {
-                        CFBundleIconFiles });
+                        icon = getImage(new string[] { CFBundleIconFiles });
                     }
                     if (icon == null) {
-                        icon = getImage(new string[] {
-                        CFBundleIconFile});
+                        icon = getImage(new string[] { CFBundleIconFile });
                     }
                     if (icon == null) {
                         icon = getImage("AppIcon");
                     }
                     if (icon == null) {
                         icon = getImage("Icon");
+                    }
+                    if (icon == null) {
+                        // Fallback: search zip for any AppIcon or Icon PNG file
+                        if (zip != null) {
+                            foreach (ZipEntry en in zip) {
+                                string enLower = en.Name.ToLower();
+                                if ((enLower.Contains("appicon") || enLower.Contains("icon")) && enLower.EndsWith(".png")) {
+                                    try {
+                                        byte[] imageBytes;
+                                        using (MemoryStream ms = new MemoryStream()) {
+                                            using (Stream s = zip.GetInputStream(en)) {
+                                                s.CopyTo(ms);
+                                            }
+                                            imageBytes = ms.ToArray();
+                                        }
+                                        MemoryStream imageOut = new MemoryStream();
+                                        try {
+                                            PNGDecrusher.Decrush(new MemoryStream(imageBytes), imageOut);
+                                            return new Bitmap(imageOut);
+                                        } catch {
+                                            return new Bitmap(new MemoryStream(imageBytes));
+                                        }
+                                    } catch { }
+                                }
+                            }
+                        }
                     }
                     return icon;
                 } catch {
