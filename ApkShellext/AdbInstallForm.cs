@@ -39,66 +39,85 @@ namespace ApkShellext {
 
         private void InitializeComponent() {
             this.Text = Utility.GetResourceString("menuInstallAdb", "Install on Device (ADB)");
-            this.Size = new Size(560, 450);
+            this.Size = new Size(640, 500);
+            this.MinimumSize = new Size(580, 440);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Icon = SystemIcons.Application;
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.MaximizeBox = true;
+            this.MinimizeBox = true;
+            this.BackColor = Color.White;
+            try {
+                this.Icon = Icon.FromHandle(Utility.ResizeBitmap(Properties.NonLocalizeResources.logo, 32).GetHicon());
+            } catch {
+                this.Icon = SystemIcons.Application;
+            }
             this.RightToLeft = Utility.IsRtl() ? RightToLeft.Yes : RightToLeft.No;
 
             pbIcon = new PictureBox {
-                Location = new Point(16, 16),
+                Location = new Point(20, 20),
                 Size = new Size(64, 64),
                 SizeMode = PictureBoxSizeMode.Zoom
             };
 
             lblAppName = new Label {
-                Location = new Point(90, 16),
-                Size = new Size(440, 24),
-                Font = new Font("Segoe UI", 11f, FontStyle.Bold),
+                Location = new Point(96, 20),
+                Size = new Size(510, 26),
+                Font = new Font("Segoe UI", 11.5f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(30, 30, 30),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 Text = Path.GetFileName(filePath)
             };
 
             lblAppDetails = new Label {
-                Location = new Point(90, 42),
-                Size = new Size(440, 36),
+                Location = new Point(96, 48),
+                Size = new Size(510, 36),
                 Font = new Font("Segoe UI", 9f, FontStyle.Regular),
                 ForeColor = Color.DimGray,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 Text = filePath
             };
 
             progressBar = new ProgressBar {
-                Location = new Point(16, 95),
-                Size = new Size(512, 22),
-                Style = ProgressBarStyle.Marquee
+                Location = new Point(20, 100),
+                Size = new Size(584, 20),
+                Style = ProgressBarStyle.Marquee,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
             lblStatus = new Label {
-                Location = new Point(16, 124),
-                Size = new Size(512, 38),
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-                ForeColor = Color.Navy,
-                AutoEllipsis = true,
+                Location = new Point(20, 130),
+                Width = 584,
+                AutoSize = true,
+                MaximumSize = new Size(584, 0),
+                Font = new Font("Segoe UI", 10.5f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 120, 215),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 Text = Utility.GetResourceString("strAdbInstalling", "Installing package on device...")
             };
 
             txtLog = new TextBox {
-                Location = new Point(16, 165),
-                Size = new Size(512, 190),
+                Location = new Point(20, 182),
+                Size = new Size(584, 215),
                 Multiline = true,
-                ScrollBars = ScrollBars.Vertical,
+                ScrollBars = ScrollBars.Both,
                 ReadOnly = true,
-                Font = new Font("Consolas", 8.5f),
-                BackColor = Color.FromArgb(248, 249, 250)
+                Font = new Font("Consolas", 9f),
+                BackColor = Color.FromArgb(250, 251, 252),
+                ForeColor = Color.FromArgb(40, 40, 40),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
             };
 
             btnAction = new Button {
-                Location = new Point(428, 368),
-                Size = new Size(100, 32),
-                Font = new Font("Segoe UI", 9f),
-                Text = Utility.GetResourceString("btnCancel", "Cancel")
+                Location = new Point(504, 410),
+                Size = new Size(100, 34),
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                Text = Utility.GetResourceString("btnCancel", "Cancel"),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(235, 238, 242),
+                ForeColor = Color.FromArgb(50, 50, 50),
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Right
             };
+            btnAction.FlatAppearance.BorderSize = 0;
             btnAction.Click += BtnAction_Click;
 
             this.Controls.Add(pbIcon);
@@ -111,6 +130,7 @@ namespace ApkShellext {
 
             this.FormClosing += AdbInstallForm_FormClosing;
             this.Shown += AdbInstallForm_Shown;
+            this.Resize += (s, e) => UpdateLayoutPositions();
         }
 
         private void LoadPackageInfo() {
@@ -188,8 +208,8 @@ namespace ApkShellext {
                 bool success = false;
                 string lastErrorOutput = "";
 
-                if (ext == ".xapk") {
-                    SetStatus("Extracting XAPK composite package...", Color.DarkBlue);
+                if (ext == ".xapk" || ext == ".apks" || ext == ".apkm") {
+                    SetStatus("Extracting composite package (" + ext.ToUpper().TrimStart('.') + ")...", Color.DarkBlue);
                     tempDir = Path.Combine(Path.GetTempPath(), "ApkShellext_Xapk_" + Guid.NewGuid().ToString("N"));
                     Directory.CreateDirectory(tempDir);
 
@@ -240,16 +260,13 @@ namespace ApkShellext {
                 }
 
                 if (success) {
-                    SetStatus(Utility.GetResourceString("strAdbSuccess", "Application installed successfully!"), Color.Green);
+                    SetStatus("Success", Color.FromArgb(16, 124, 65));
                     progressBar.Style = ProgressBarStyle.Blocks;
                     progressBar.Value = 100;
                     FinishInstallation(true);
                 } else {
                     string errLine = ExtractAdbErrorMessage(lastErrorOutput);
-                    string template = Utility.GetResourceString("strAdbFailed", "Installation failed: {0}");
-                    string displayMsg = FormatErrorMsg(template, errLine);
-
-                    SetStatus(displayMsg, Color.Red);
+                    SetStatus("Installation Failed: " + errLine, Color.FromArgb(209, 52, 56));
                     FinishInstallation(false);
                 }
             } catch (OperationCanceledException) {
@@ -404,14 +421,47 @@ namespace ApkShellext {
         }
 
         private string ExtractAdbErrorMessage(string output) {
-            if (string.IsNullOrEmpty(output)) return "Unknown error";
+            if (string.IsNullOrEmpty(output)) return "Unknown error occurred.";
             string[] lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            // Priority 1: Extract inner Failure [REASON]
             foreach (string l in lines) {
-                if (l.Contains("Failure") || l.Contains("Error") || l.Contains("FAILED") || l.Contains("failed to install")) {
-                    return l.Trim();
+                string line = l.Trim();
+                if (line.Contains("Failure [")) {
+                    int start = line.IndexOf("Failure [") + 9;
+                    int end = line.LastIndexOf(']');
+                    if (end > start) {
+                        return line.Substring(start, end - start);
+                    } else {
+                        return line.Substring(start);
+                    }
                 }
             }
-            return lines.LastOrDefault()?.Trim() ?? "Installation error";
+
+            // Priority 2: Extract INSTALL_FAILED_
+            foreach (string l in lines) {
+                string line = l.Trim();
+                if (line.Contains("INSTALL_FAILED_")) {
+                    int start = line.IndexOf("INSTALL_FAILED_");
+                    return line.Substring(start).TrimEnd(']');
+                }
+            }
+
+            // Priority 3: Extract last non-empty line without file path prefixes
+            foreach (string l in lines.Reverse()) {
+                string line = l.Trim();
+                if (!line.StartsWith("List of") && !line.StartsWith("*") && !string.IsNullOrWhiteSpace(line)) {
+                    if (line.Contains("failed to install")) {
+                        int colIdx = line.LastIndexOf(':');
+                        if (colIdx >= 0 && colIdx < line.Length - 1) {
+                            return line.Substring(colIdx + 1).Trim();
+                        }
+                    }
+                    return line;
+                }
+            }
+
+            return "Installation failed.";
         }
 
         private Task<string> RunProcessAsync(string filename, string arguments, CancellationToken token) {
@@ -492,6 +542,18 @@ namespace ApkShellext {
             }
             lblStatus.Text = message;
             lblStatus.ForeColor = color;
+            UpdateLayoutPositions();
+        }
+
+        private void UpdateLayoutPositions() {
+            if (lblStatus == null || txtLog == null || btnAction == null) return;
+            lblStatus.MaximumSize = new Size(this.ClientSize.Width - 40, 0);
+            int top = lblStatus.Bottom + 12;
+            int availableHeight = btnAction.Top - top - 12;
+            if (availableHeight > 50) {
+                txtLog.Location = new Point(20, top);
+                txtLog.Size = new Size(this.ClientSize.Width - 40, availableHeight);
+            }
         }
 
         private void FinishInstallation(bool success) {
